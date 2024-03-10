@@ -7,7 +7,7 @@ add_compile_options(-Wall -Wextra -Werror -Wpedantic -pedantic-errors)
 
 include_directories(include)
 
-set(SOURCE_FILES src)
+set(SOURCE_FILES src/pieces.cpp src/chessboard.cpp src/game.cpp)
 
 add_executable(Chess ${SOURCE_FILES} main.cpp)
 
