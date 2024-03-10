@@ -1,0 +1,4 @@
+#ifndef CHESS_PIECES_HPP
+#define CHESS_PIECES_HPP
+
+#endif //CHESS_PIECES_HPP
