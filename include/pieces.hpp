@@ -1,7 +1,6 @@
 #ifndef CHESS_PIECES_HPP
 #define CHESS_PIECES_HPP
 
-#include "types.hpp"
 #include <cstdint>
 #include <vector>
 #include <map>
@@ -9,33 +8,72 @@
 
 struct position{
     using Position = std::uint8_t;
+    position(Position x, Position y) : x(x), y(y){}
     Position x;
     Position y;
+    bool operator<(const position& other) const {
+        return (x < other.x) || ((x == other.x) && (y < other.y));
+    }
 };
 
-class IPiece{
+class Piece{
 public:
-    virtual position get_position() const=0;
-    virtual bool is_white() const=0;
-    virtual bool is_killed() const=0;
-    virtual std::vector<position> get_possible_moves()const = 0;
-    virtual void find_possible_moves(std::map<position, IPiece> const & allPieces) = 0;
+    Piece(const position& position, bool white) : m_position(position), m_white(white), m_killed(false), m_id('q'){};
+    position get_position() const {return m_position;}
+    bool is_white() const {return m_white;}
+    bool is_killed() const {return  m_killed;}
+    std::vector<position> get_possible_moves()const {return m_possibleMoves;}
+    char get_id() const{return m_id;}
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-parameter"
+    virtual void find_possible_moves(const std::map<position, Piece*>& allPieces) { return; };
+#pragma clang diagnostic pop
+    virtual ~Piece() = default;
 
-};
-
-class Bishop : IPiece{
-public:
-    Bishop(position position, bool white) : m_position(position), m_white(white), m_killed(false){};
-    position get_position() const override{return m_position;}
-    bool is_white() const override{return m_white;}
-    bool is_killed() const override{return  m_killed;}
-    std::vector<position> get_possible_moves()const override{return m_possibleMoves;}
-    void find_possible_moves(std::map<position, IPiece> const & allPieces) override;
-private:
+protected:
     position m_position;
     bool m_white;
     bool m_killed;
     std::vector<position> m_possibleMoves;
+    char m_id;
+};
+
+
+class Bishop : public Piece {
+public:
+    Bishop(const position& position, bool white);
+    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+
+};
+
+class Pawn : public Piece{
+public:
+    Pawn(const position& position, bool white);
+    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+};
+
+class Rook : public Piece{
+public:
+    Rook(const position& position, bool white);
+    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+};
+
+class Kinght : public Piece{
+public:
+    Kinght(const position& position, bool white);
+    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+};
+
+class Queen : public Piece{
+public:
+    Queen(const position& position, bool white);
+    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+};
+
+class King : public Piece{
+public:
+    King(const position& position, bool white);
+    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
 };
 
 
