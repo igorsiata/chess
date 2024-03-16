@@ -1,82 +1,96 @@
 #ifndef CHESS_PIECES_HPP
 #define CHESS_PIECES_HPP
 
+#include "move.hpp"
 #include <cstdint>
+#include <utility>
 #include <vector>
 #include <map>
 
 
-struct position{
-    using Position = std::uint8_t;
-    position(Position x, Position y) : x(x), y(y){}
-    Position x;
-    Position y;
-    bool operator<(const position& other) const {
-        return (x < other.x) || ((x == other.x) && (y < other.y));
-    }
-};
-
-class Piece{
+class Piece {
 public:
-    Piece(const position& position, bool white) : m_position(position), m_white(white), m_killed(false), m_id('q'){};
-    position get_position() const {return m_position;}
-    bool is_white() const {return m_white;}
-    bool is_killed() const {return  m_killed;}
-    std::vector<position> get_possible_moves()const {return m_possibleMoves;}
-    char get_id() const{return m_id;}
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-    virtual void find_possible_moves(const std::map<position, Piece*>& allPieces) { return; };
-#pragma clang diagnostic pop
+    using PiecesMap = std::map<Position, Piece*>;
+
+    Piece(Position position, bool white) : m_position(std::move(position)), m_white(white), m_id('q') {};
+
+    Position get_position() const { return m_position; }
+
+    bool is_white() const { return m_white; }
+
+    std::vector<Move> get_possible_moves() const { return m_possibleMoves; }
+
+    char get_id() const { return m_id; }
+
+    void find_possible_moves(const PiecesMap& allPieces);
+
     virtual ~Piece() = default;
 
 protected:
-    position m_position;
+    virtual std::vector<Move> find_all_moves(const PiecesMap& allPieces) { return std::vector<Move>(); };
+
+    bool is_check_after_move(const PiecesMap& allPieces, Move move);
+
+    void set_possible_moves(std::vector<Move> possibleMoves) { m_possibleMoves = std::move(possibleMoves); };
+
+    void set_id(char id) { m_id = id; };
+
+
+    MoveType move_type(const std::map<Position, Piece*>& allPieces, Position move);
+
+private:
+    Position m_position;
     bool m_white;
-    bool m_killed;
-    std::vector<position> m_possibleMoves;
+    std::vector<Move> m_possibleMoves;
     char m_id;
 };
 
 
 class Bishop : public Piece {
 public:
-    Bishop(const position& position, bool white);
-    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+    Bishop(const Position& position, bool white);
+
+    std::vector<Move> find_all_moves(const PiecesMap& allPieces) override;
+
 
 };
 
-class Pawn : public Piece{
+class Pawn : public Piece {
 public:
-    Pawn(const position& position, bool white);
-    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+    Pawn(const Position& position, bool white);
+
+    std::vector<Move> find_all_moves(const PiecesMap& allPieces) override;
+
+
 };
 
-class Rook : public Piece{
+class Rook : public Piece {
 public:
-    Rook(const position& position, bool white);
-    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+    Rook(const Position& position, bool white);
+
+    std::vector<Move> find_all_moves(const std::map<Position, Piece*>& allPieces) override;
 };
 
-class Kinght : public Piece{
+class Kinght : public Piece {
 public:
-    Kinght(const position& position, bool white);
-    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+    Kinght(const Position& position, bool white);
+
+    std::vector<Move> find_all_moves(const std::map<Position, Piece*>& allPieces) override;
 };
 
-class Queen : public Piece{
+class Queen : public Piece {
 public:
-    Queen(const position& position, bool white);
-    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+    Queen(const Position& position, bool white);
+
+    std::vector<Move> find_all_moves(const std::map<Position, Piece*>& allPieces) override;
 };
 
-class King : public Piece{
+class King : public Piece {
 public:
-    King(const position& position, bool white);
-    void find_possible_moves(const std::map<position, Piece*>& allPieces)override;
+    King(const Position& position, bool white);
+
+    std::vector<Move> find_all_moves(const std::map<Position, Piece*>& allPieces) override;
 };
-
-
 
 
 #endif //CHESS_PIECES_HPP

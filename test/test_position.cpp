@@ -7,6 +7,6 @@ TEST(DrawChessboardTest, EmptyChessboard) {
     game.load_position(startPosition);
     std::ostringstream oss;
     game.generate_position(oss);
-    std::cout<<oss.str();
+    std::cout << oss.str();
 
 }
