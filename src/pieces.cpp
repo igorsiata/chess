@@ -1,8 +1,8 @@
 #include "pieces.hpp"
 
-MoveType Piece::move_type(const PiecesMap& allPieces, Position move) {
+MoveType Piece::move_type(const PiecesMap& allPieces, Position move) const {
     //is move out of board
-    if (move.first < 0 || move.first > 8 || move.second < 0 || move.second > 8)
+    if (move.first < 1 || move.first > 8 || move.second < 1 || move.second > 8)
         return MoveType::OUT;
 
     //is move colliding with any other piece
@@ -25,19 +25,24 @@ MoveType Piece::move_type(const PiecesMap& allPieces, Position move) {
 }
 
 
-bool Piece::is_check_after_move(const PiecesMap& allPieces, Move move) {
+bool Piece::is_check_after_move(const PiecesMap& allPieces, Move move) const {
     //create dummy pieces map after move
     PiecesMap dummyPiecesMap = allPieces;
     if (move.moveType == CAPTURE) {
         auto capturedPiece = dummyPiecesMap.find(move.endPosition);
+        //en passant move (only case when end position is not position of piece captured)
+        if(capturedPiece == dummyPiecesMap.end()){
+            capturedPiece = dummyPiecesMap.find(Position (move.endPosition.first,move.startPosition.second));
+        }
         dummyPiecesMap.erase(capturedPiece);
     }
     auto movedPiece = dummyPiecesMap.find(move.startPosition);
-    dummyPiecesMap.erase(movedPiece);
     dummyPiecesMap.insert({move.endPosition, movedPiece->second});
+    dummyPiecesMap.erase(movedPiece);
+
 
     //check for checks
-    for (auto elem: allPieces) {
+    for (auto elem: dummyPiecesMap) {
         Piece* piece_ptr = elem.second;
         if (piece_ptr->is_white() != m_white) {
             std::vector<Move> possibleMoves = piece_ptr->find_all_moves(dummyPiecesMap);
@@ -53,12 +58,18 @@ bool Piece::is_check_after_move(const PiecesMap& allPieces, Move move) {
 
 void Piece::find_possible_moves(const Piece::PiecesMap& allPieces) {
     std::vector<Move> allMoves = find_all_moves(allPieces);
-    for (auto itr = allMoves.begin(); itr != allMoves.end(); itr++) {
-        if (is_check_after_move(allPieces, *itr)) {
-            allMoves.erase(itr);
-        }
-    }
+    allMoves.erase(std::remove_if(
+                           allMoves.begin(), allMoves.end(),
+                           [this, allPieces](auto itr) { return is_check_after_move(allPieces, itr); }),
+                   allMoves.end());
+
     set_possible_moves(allMoves);
+}
+
+void Piece::add_possible_moves(const std::vector<Move>& extraMoves) {
+    for (auto move: extraMoves) {
+        m_possibleMoves.push_back(move);
+    }
 }
 
 
@@ -84,18 +95,21 @@ std::vector<Move> Bishop::find_all_moves(const PiecesMap& allPieces) {
                 move = Move{get_position(), endPosition, moveType};
                 switch (moveType) {
                     case OUT:
-                        break;
+                        goto exit_loop;
                     case EMPTY:
                         possibleMoves.push_back(move);
+                        break;
                     case CAPTURE:
                         possibleMoves.push_back(move);
+                        goto exit_loop;
                     case ALLY:
-                        break;
+                        goto exit_loop;
                     case CHECK:
                         possibleMoves.push_back(move);
-                        break;
+                        goto exit_loop;
                 }
             }
+            exit_loop:;
         }
     }
     return possibleMoves;
@@ -120,11 +134,11 @@ std::vector<Move> Pawn::find_all_moves(const std::map<Position, Piece*>& allPiec
     }
 
     //move 2 squares
-    if ((is_white() & get_position().second == 7)
-        || (not is_white() & get_position().second == 2)) {
+    if ((is_white() && get_position().second == 7)
+        || (not is_white() && get_position().second == 2)) {
         endPosition = Position(
                 get_position().first,
-                get_position().second + 1 * color_mult);
+                get_position().second + 2 * color_mult);
         moveType = move_type(allPieces, endPosition);
         move = Move{get_position(), endPosition, moveType};
         if (move_type(allPieces, endPosition) == EMPTY) {
@@ -154,7 +168,7 @@ std::vector<Move> Pawn::find_all_moves(const std::map<Position, Piece*>& allPiec
             possibleMoves.push_back(move);
         }
     }
-
+    return possibleMoves;
 }
 
 
@@ -170,30 +184,34 @@ std::vector<Move> Rook::find_all_moves(const std::map<Position, Piece*>& allPiec
     MoveType moveType;
     Position endPosition;
     Move move;
-    for (int i = 0; i <= 1; i++) {
-        for (int j = -1; j <= 1; j += 2) {
-            for (int step = 1; step <= 8; step++) {
-                endPosition = Position(
-                        get_position().first + int(!i) * j * step,
-                        get_position().second + j * i * step);
-                moveType = move_type(allPieces, endPosition);
-                move = Move{get_position(), endPosition, moveType};
-                switch (moveType) {
-                    case OUT:
-                        break;
-                    case EMPTY:
-                        possibleMoves.push_back(move);
-                    case CAPTURE:
-                        possibleMoves.push_back(move);
-                    case ALLY:
-                        break;
-                    case CHECK:
-                        possibleMoves.push_back(move);
-                        break;
-                }
+    int dx[4] = {1, -1, 0, 0};
+    int dy[4] = {0, 0, 1, -1};
+    for (int i = 0; i < 4; i++) {
+        for (int step = 1; step <= 8; step++) {
+            endPosition = Position(
+                    get_position().first + dx[i] * step,
+                    get_position().second + dy[i] * step);
+            moveType = move_type(allPieces, endPosition);
+            move = Move{get_position(), endPosition, moveType};
+            switch (moveType) {
+                case OUT:
+                    goto exit_loop;
+                case EMPTY:
+                    possibleMoves.push_back(move);
+                    break;
+                case CAPTURE:
+                    possibleMoves.push_back(move);
+                    goto exit_loop;
+                case ALLY:
+                    goto exit_loop;
+                case CHECK:
+                    possibleMoves.push_back(move);
+                    goto exit_loop;
             }
         }
+        exit_loop:;
     }
+
     return possibleMoves;
 
 }
@@ -224,8 +242,10 @@ std::vector<Move> Kinght::find_all_moves(const std::map<Position, Piece*>& allPi
                 break;
             case EMPTY:
                 possibleMoves.push_back(move);
+                break;
             case CAPTURE:
                 possibleMoves.push_back(move);
+                break;
             case ALLY:
                 break;
             case CHECK:
@@ -250,54 +270,34 @@ std::vector<Move> Queen::find_all_moves(const std::map<Position, Piece*>& allPie
     MoveType moveType;
     Position endPosition;
     Move move;
-    for (int i = 0; i <= 1; i++) {
-        for (int j = -1; j <= 1; j += 2) {
-            for (int step = 1; step <= 8; step++) {
-                endPosition = Position(
-                        get_position().first + int(!i) * j * step,
-                        get_position().second + j * i * step);
-                moveType = move_type(allPieces, endPosition);
-                move = Move{get_position(), endPosition, moveType};
-                switch (moveType) {
-                    case OUT:
-                        break;
-                    case EMPTY:
-                        possibleMoves.push_back(move);
-                    case CAPTURE:
-                        possibleMoves.push_back(move);
-                    case ALLY:
-                        break;
-                    case CHECK:
-                        possibleMoves.push_back(move);
-                        break;
-                }
+    int dx[9] = {1, 1, 1, 0, 0, 0, -1, -1, -1};
+    int dy[9] = {1, 0, -1, 1, 0, -1, 1, 0, -1};
+    for (int i = 0; i < 9; i++) {
+        for (int step = 1; step <= 8; step++) {
+            endPosition = Position(
+                    get_position().first + dx[i] * step,
+                    get_position().second + dy[i] * step);
+            moveType = move_type(allPieces, endPosition);
+            move = Move{get_position(), endPosition, moveType};
+            switch (moveType) {
+                case OUT:
+                    goto exit_loop;
+                case EMPTY:
+                    possibleMoves.push_back(move);
+                    break;
+                case CAPTURE:
+                    possibleMoves.push_back(move);
+                    goto exit_loop;
+                case ALLY:
+                    goto exit_loop;
+                case CHECK:
+                    possibleMoves.push_back(move);
+                    goto exit_loop;
             }
         }
+        exit_loop:;
     }
-    for (int i = -1; i <= 1; i += 2) {
-        for (int j = -1; j <= 1; j += 2) {
-            for (int step = 1; step <= 8; step++) {
-                endPosition = Position(
-                        get_position().first + i * step,
-                        get_position().second + j * step);
-                moveType = move_type(allPieces, endPosition);
-                move = Move{get_position(), endPosition, moveType};
-                switch (moveType) {
-                    case OUT:
-                        break;
-                    case EMPTY:
-                        possibleMoves.push_back(move);
-                    case CAPTURE:
-                        possibleMoves.push_back(move);
-                    case ALLY:
-                        break;
-                    case CHECK:
-                        possibleMoves.push_back(move);
-                        break;
-                }
-            }
-        }
-    }
+
     return possibleMoves;
 }
 
@@ -314,56 +314,34 @@ std::vector<Move> King::find_all_moves(const std::map<Position, Piece*>& allPiec
     MoveType moveType;
     Position endPosition;
     Move move;
-    for (int i = 0; i <= 1; i++) {
-        for (int j = -1; j <= 1; j += 2) {
-
-            endPosition = Position(
-                    get_position().first + int(!i) * j,
-                    get_position().second + j * i);
-            moveType = move_type(allPieces, endPosition);
-            move = Move{get_position(), endPosition, moveType};
-            switch (moveType) {
-                case OUT:
-                    break;
-                case EMPTY:
-                    possibleMoves.push_back(move);
-                case CAPTURE:
-                    possibleMoves.push_back(move);
-                case ALLY:
-                    break;
-                case CHECK:
-                    possibleMoves.push_back(move);
-                    break;
-
-            }
-        }
-    }
-    for (int i = -1; i <= 1; i += 2) {
-        for (int j = -1; j <= 1; j += 2) {
-            endPosition = Position(
-                    get_position().first + i,
-                    get_position().second + j);
-            moveType = move_type(allPieces, endPosition);
-            move = Move{get_position(), endPosition, moveType};
-            switch (moveType) {
-                case OUT:
-                    break;
-                case EMPTY:
-                    possibleMoves.push_back(move);
-                case CAPTURE:
-                    possibleMoves.push_back(move);
-                case ALLY:
-                    break;
-                case CHECK:
-                    possibleMoves.push_back(move);
-                    break;
-
-            }
+    int dx[9] = {1, 1, 1, 0, 0, 0, -1, -1, -1};
+    int dy[9] = {1, 0, -1, 1, 0, -1, 1, 0, -1};
+    for (int i = 0; i < 9; i++) {
+        endPosition = Position(
+                get_position().first + dx[i],
+                get_position().second + dy[i]);
+        moveType = move_type(allPieces, endPosition);
+        move = Move{get_position(), endPosition, moveType};
+        switch (moveType) {
+            case OUT:
+                break;
+            case EMPTY:
+                possibleMoves.push_back(move);
+                break;
+            case CAPTURE:
+                possibleMoves.push_back(move);
+                break;
+            case ALLY:
+                break;
+            case CHECK:
+                possibleMoves.push_back(move);
+                break;
         }
     }
     return possibleMoves;
-
 }
+
+
 
 
 

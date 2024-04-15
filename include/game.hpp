@@ -11,9 +11,9 @@
 
 class Game {
 public:
+    Game();
 
-
-    void move(const Position& startPosition, const Position& endPosition);
+    void move(const Move& move);
 
     void load_position(const std::string& positionAsString);
 
@@ -21,10 +21,19 @@ public:
 
     void generate_possible_moves();
 
+    void output_possible_moves(std::ostream& os);
+
+    std::vector<Move> get_piece_possible_moves(Position position);
+
+    std::vector<Position> get_piece_moves_end_position(Position position);
 
 private:
+    std::vector<Move> find_castles();
     Piece::PiecesMap m_piecesMap;
-    std::vector<Piece> m_allPieces;
+    bool m_whiteToMove;
+    Position m_enPassantSquare;
+    std::map<char, bool> m_CastlesAvailable;
+
 };
 
 
