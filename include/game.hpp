@@ -23,6 +23,8 @@ public:
 
     void output_possible_moves(std::ostream& os);
 
+    Piece::PiecesMap get_pieces_map(){return  m_piecesMap;}
+
     std::vector<Move> get_piece_possible_moves(Position position);
 
     std::vector<Position> get_piece_moves_end_position(Position position);
