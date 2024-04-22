@@ -1,94 +1,162 @@
 #include "game.hpp"
 
-void Game::move(const Move& move) {
-    if (move.moveType == CAPTURE) {
-        m_piecesMap.erase(move.endPosition);
+
+Game::Game(const std::string& positionAsString) {
+    load_position(positionAsString);
+    generate_possible_moves();
+}
+
+bool Game::move(const Position& startPosition, const Position& endPosition) {
+    if (m_piecesMap.find(startPosition) == m_piecesMap.end()) {
+        return true;
     }
-    if (move.moveType == EMPTY or move.moveType == CAPTURE) {
-        Piece* pieceToMove = m_piecesMap[move.startPosition];
-        m_piecesMap[move.endPosition] = &*pieceToMove;
-        m_piecesMap.erase(move.startPosition);
-    }
+    Piece* pieceToMove = m_piecesMap[startPosition];
+    auto possibleMoves = pieceToMove->get_possible_moves();
+    Move thisMove;
+    for (auto moveItr: possibleMoves) {
+
+        if (moveItr.endPosition == endPosition) {
+            thisMove = moveItr;
+            if (thisMove.moveType == CASTLE) {
+                castle(moveItr);
+            }
+            if (thisMove.moveType == CAPTURE) {
+                m_piecesMap.erase(thisMove.endPosition);
+            }
+            if (thisMove.moveType == ENPASSAT) {
+                if (m_whiteToMove) {
+                    m_piecesMap.erase(Position(m_enPassantSquare.first, 4));
+                } else {
+                    m_piecesMap.erase(Position(m_enPassantSquare.first, 5));
+                }
+            }
+            //black king move
+            if (startPosition.first == 5 and startPosition.second == 1) {
+                m_CastlesAvailable['k'] = false;
+                m_CastlesAvailable['q'] = false;
+            }
+            // white king move
+            if (startPosition.first == 5 and startPosition.second == 8) {
+                m_CastlesAvailable['K'] = false;
+                m_CastlesAvailable['Q'] = false;
+            }
+            en_passnat_square(pieceToMove, startPosition, endPosition);
+            rook_move(startPosition);
+            rook_move(endPosition);
 
 
+            auto itr = m_piecesMap.find(startPosition);
+            itr->second->change_position(endPosition);
+            if (itr != m_piecesMap.end()) {
+                // Swap value from oldKey to newKey, note that a default constructed value
+                // is created by operator[] if 'm' does not contain newKey.
+                std::swap(m_piecesMap[thisMove.endPosition], itr->second);
+                // Erase old key-value from map
+                m_piecesMap.erase(itr);
+            }
+            m_whiteToMove = !m_whiteToMove;
+            return generate_possible_moves();
+        }
+
+    }
+
+    return true;
 }
 
 void Game::load_position(const std::string& positionAsString) {
-
+    m_CastlesAvailable = {{'K', false},
+                          {'Q', false},
+                          {'k', false},
+                          {'q', false}};
+    m_enPassantSquare = Position(0, 0);
     Position currentPosition(1, 1);
+    int loadState = 0;
     for (auto it: positionAsString) {
-        switch (it) {
-            case ('b'):
-                m_piecesMap.insert({currentPosition, new Bishop(currentPosition, false)});
-                break;
-            case ('B'):
-                m_piecesMap.insert({currentPosition, new Bishop(currentPosition, true)});
-                break;
-            case 'P':
-                m_piecesMap.insert({currentPosition, new Pawn(currentPosition, true)});
-                break;
-            case 'p':
-                m_piecesMap.insert({currentPosition, new Pawn(currentPosition, false)});
-                break;
-            case 'R':
-                m_piecesMap.insert({currentPosition, new Rook(currentPosition, true)});
-                break;
-            case 'r':
-                m_piecesMap.insert({currentPosition, new Rook(currentPosition, false)});
-                break;
-            case 'N':
-                m_piecesMap.insert({currentPosition, new Kinght(currentPosition, true)});
-                break;
-            case 'n':
-                m_piecesMap.insert({currentPosition, new Kinght(currentPosition, false)});
-                break;
-            case 'Q':
-                m_piecesMap.insert({currentPosition, new Queen(currentPosition, true)});
-                break;
-            case 'q':
-                m_piecesMap.insert({currentPosition, new Queen(currentPosition, false)});
-                break;
-            case 'K':
-                m_piecesMap.insert({currentPosition, new King(currentPosition, true)});
-                break;
-            case 'k':
-                m_piecesMap.insert({currentPosition, new King(currentPosition, false)});
-                break;
-            case ('/'):
-                currentPosition.second += 1;
-                currentPosition.first = 0;
-                break;
-            default:
-                if (std::isdigit(it)) {
-                    currentPosition.first += uint8_t(it - 48) - 1;
-                }
-                break;
+        if (it == ' ') {
+            loadState++;
+        } else if (loadState == 0) {
+            switch (it) {
+                case ('b'):
+                    m_piecesMap.insert({currentPosition, new Bishop(currentPosition, false)});
+                    break;
+                case ('B'):
+                    m_piecesMap.insert({currentPosition, new Bishop(currentPosition, true)});
+                    break;
+                case 'P':
+                    m_piecesMap.insert({currentPosition, new Pawn(currentPosition, true)});
+                    break;
+                case 'p':
+                    m_piecesMap.insert({currentPosition, new Pawn(currentPosition, false)});
+                    break;
+                case 'R':
+                    m_piecesMap.insert({currentPosition, new Rook(currentPosition, true)});
+                    break;
+                case 'r':
+                    m_piecesMap.insert({currentPosition, new Rook(currentPosition, false)});
+                    break;
+                case 'N':
+                    m_piecesMap.insert({currentPosition, new Kinght(currentPosition, true)});
+                    break;
+                case 'n':
+                    m_piecesMap.insert({currentPosition, new Kinght(currentPosition, false)});
+                    break;
+                case 'Q':
+                    m_piecesMap.insert({currentPosition, new Queen(currentPosition, true)});
+                    break;
+                case 'q':
+                    m_piecesMap.insert({currentPosition, new Queen(currentPosition, false)});
+                    break;
+                case 'K':
+                    m_piecesMap.insert({currentPosition, new King(currentPosition, true)});
+                    break;
+                case 'k':
+                    m_piecesMap.insert({currentPosition, new King(currentPosition, false)});
+                    break;
+                case ('/'):
+                    currentPosition.second += 1;
+                    currentPosition.first = 0;
+                    break;
+                default:
+                    if (std::isdigit(it)) {
+                        currentPosition.first += uint8_t(it - 48) - 1;
+                    }
+                    break;
+            }
+            currentPosition.first++;
+
+        } else if (loadState == 1) {
+            if (it == 'w') {
+                m_whiteToMove = true;
+            } else if (it == 'b') {
+                m_whiteToMove = false;
+            }
+
+        } else if (loadState == 2) {
+            m_CastlesAvailable[it] = true;
+        } else if (loadState == 3) {
+            if (it == '-') {
+                loadState++;
+            } else if (m_enPassantSquare.first != 0) {
+                m_enPassantSquare.second = (int) it;
+            } else {
+                m_enPassantSquare.first = ((int) it) - 96;
+            }
+
+
+        } else {
+            break;
         }
-        currentPosition.first++;
     }
 
 }
 
-void Game::generate_position(std::ostream& os) {
-    std::string horizontalLine = "\n+---+---+---+---+---+---+---+---+\n";
-    for (std::size_t row = 1; row <= 8; row++) {
-        os << horizontalLine;
-        os << "|";
-        for (std::size_t column = 1; column <= 8; column++) {
-            auto it = m_piecesMap.find(Position(column, row));
-            if (it != m_piecesMap.end())
-                os << " " << it->second->get_id();
-            else
-                os << "  ";
-            os << " |";
-        }
-    }
-    os << horizontalLine;
-}
 
-void Game::generate_possible_moves() {
+bool Game::generate_possible_moves() {
+    bool isCheckmate = true;
     for (auto& it: m_piecesMap) {
-            it.second->find_possible_moves(m_piecesMap);
+        if (it.second->find_possible_moves(m_piecesMap, m_whiteToMove)) {
+            isCheckmate = false;
+        }
     }
     //add castles
     std::vector<Move> castles = find_castles();
@@ -97,68 +165,48 @@ void Game::generate_possible_moves() {
         auto kingItr = m_piecesMap.find(Position(5, y));
         kingItr->second->add_possible_moves(castles);
     }
-
-    //add en passant square
-}
-
-void Game::output_possible_moves(std::ostream& os) {
-    std::string horizontalLine = "\n-----------------------+\n";
-    for (auto& itr: m_piecesMap) {
-        os << horizontalLine;
-        os << itr.second->get_id() << " (" << itr.second->get_position().first <<
-           ", " << itr.second->get_position().second << ") -> \n";
-        auto piece = *(itr.second);
-        for (auto move: piece.get_possible_moves()) {
-            os << "(" << move.endPosition.first << ", " << move.endPosition.second << "); ";
-        }
+    find_enpassant();
+    if (isCheckmate) {
+        return false;
     }
-}
-
-Game::Game() : m_whiteToMove(true), m_enPassantSquare(0, 0) {
-    m_CastlesAvailable = {{'K', true},
-                          {'Q', true},
-                          {'k', true},
-                          {'q', true}};
+    return true;
+    //add en passant square
 }
 
 
 std::vector<Move> Game::find_castles() {
     std::vector<Move> castles;
-    if (m_whiteToMove and (!m_CastlesAvailable['K'] and !m_CastlesAvailable['Q'])) {
+    bool canKingside;
+    bool canQueeside;
+    if (m_whiteToMove) {
+        canKingside = m_CastlesAvailable['K'];
+        canQueeside = m_CastlesAvailable['Q'];
+    } else {
+        canKingside = m_CastlesAvailable['k'];
+        canQueeside = m_CastlesAvailable['q'];
+    }
+    if (!canKingside and !canQueeside) {
         return castles;
     }
     // y -> row where king stands
     int y = 1 + int(m_whiteToMove) * 7;
 
     auto kingItr = m_piecesMap.find(Position(5, y));
-    if (kingItr == m_piecesMap.end()) {
-        if (m_whiteToMove) {
-            m_CastlesAvailable['K'] = false;
-            m_CastlesAvailable['Q'] = false;
-        } else {
-            m_CastlesAvailable['k'] = false;
-            m_CastlesAvailable['q'] = false;
-        }
-        return castles;
-    }
-    bool canKingside = true;
-    bool canQueeside = true;
+
 
     //squares to check if they are empty and not under attack
-    int kingside[2] = {6, 7};
-    int queenside[3] = {4, 3, 2};
 
     //empty kingside
-    for (int i = 0; i < 2; i++) {
-        if (m_piecesMap.find(Position(kingside[i], y)) != m_piecesMap.end()) {
+    for (int i = 6; i < 8; i++) {
+        if (m_piecesMap.find(Position(i, y)) != m_piecesMap.end()) {
             canKingside = false;
         }
     }
 
     //empty queenside
-    for (int i = 0; i < 3; i++) {
-        if (m_piecesMap.find(Position(queenside[i], y)) != m_piecesMap.end()) {
-            canKingside = false;
+    for (int i = 2; i < 5; i++) {
+        if (m_piecesMap.find(Position(i, y)) != m_piecesMap.end()) {
+            canQueeside = false;
         }
     }
 
@@ -168,7 +216,7 @@ std::vector<Move> Game::find_castles() {
         if (enemyPiece->is_white() == m_whiteToMove) {
             continue;
         }
-        for (auto& move: enemyPiece->get_possible_moves()) {
+        for (auto& move: enemyPiece->find_all_moves(m_piecesMap)) {
             //kingside
             for (int i = 5; i < 8; i++) {
                 if (move.endPosition == Position(i, y)) {
@@ -186,31 +234,107 @@ std::vector<Move> Game::find_castles() {
 
     }
     if (canKingside) {
-        castles.push_back(Move{Position(5, y),
-                               Position(7, y),
-                               EMPTY});
+        castles.push_back(Move{Position(7, y),
+                               CASTLE});
 
     }
     if (canQueeside) {
-        castles.push_back(Move{Position(5, y),
-                               Position(3, y),
-                               EMPTY});
+        castles.push_back(Move{Position(3, y),
+                               CASTLE});
 
     }
     return castles;
 }
 
 std::vector<Move> Game::get_piece_possible_moves(Position position) {
+    if (m_piecesMap.find(position) == m_piecesMap.end()) {
+        return std::vector<Move>();
+    }
     return m_piecesMap[position]->get_possible_moves();
 }
 
-std::vector<Position> Game::get_piece_moves_end_position(Position position) {
-    std::vector<Move> possibleMoves = get_piece_possible_moves(position);
-    std::vector<Position> endPositions;
-    for(auto& move : possibleMoves){
-        endPositions.push_back(move.endPosition);
+
+std::map<Position, char> Game::get_all_pieces() {
+    std::map<Position, char> allPieces;
+    for (auto elem: m_piecesMap) {
+        allPieces[elem.first] = elem.second->get_id();
     }
-    return endPositions;
+    return allPieces;
+}
+
+
+void Game::castle(Move moveItr) {
+    int y = moveItr.endPosition.second;
+    if (moveItr.endPosition.first == 7) {
+        move(Position(8, y), Position(6, y));
+        m_whiteToMove = !m_whiteToMove;
+    }
+    if (moveItr.endPosition.first == 3) {
+        move(Position(1, y), Position(4, y));
+        m_whiteToMove = !m_whiteToMove;
+    }
+    if (m_whiteToMove) {
+        m_CastlesAvailable['K'] = false;
+        m_CastlesAvailable['Q'] = false;
+    } else {
+        m_CastlesAvailable['k'] = false;
+        m_CastlesAvailable['q'] = false;
+    }
+
+}
+
+void Game::en_passnat_square(Piece* pieceToMove, Position startPosition, Position endPosition) {
+    if (pieceToMove->get_id() == 'p' or pieceToMove->get_id() == 'P') {
+        if (startPosition.second - endPosition.second == 2) {
+            m_enPassantSquare = Position(startPosition.first, 6);
+            return;
+        }
+        if (startPosition.second - endPosition.second == -2) {
+            m_enPassantSquare = Position(startPosition.first, 3);
+            return;
+        }
+    }
+    m_enPassantSquare = Position(0, 0);
+}
+
+void Game::rook_move(Position startPosition) {
+    if (startPosition.first == 1 && startPosition.second == 1) {
+        m_CastlesAvailable['q'] = false;
+    }
+    if (startPosition.first == 8 && startPosition.second == 1) {
+        m_CastlesAvailable['k'] = false;
+    }
+    if (startPosition.first == 1 && startPosition.second == 8) {
+        m_CastlesAvailable['Q'] = false;
+    }
+    if (startPosition.first == 8 && startPosition.second == 8) {
+        m_CastlesAvailable['K'] = false;
+    }
+}
+
+void Game::find_enpassant() {
+    Position pos1(m_enPassantSquare.first - 1, 5);
+    Position pos2(m_enPassantSquare.first + 1, 5);
+    if (m_whiteToMove) {
+        pos1.second = 4;
+        pos2.second = 4;
+    }
+    auto itr1 = m_piecesMap.find(pos1);
+    auto itr2 = m_piecesMap.find(pos2);
+    if (itr1 != m_piecesMap.end()) {
+        if (itr1->second->get_id() == 'P' or itr1->second->get_id() == 'p') {
+            Move move = {m_enPassantSquare, ENPASSAT};
+            if (!itr1->second->is_check_after_move(m_piecesMap, pos1, move))
+                itr1->second->add_possible_moves(move);
+        }
+    }
+    if (itr2 != m_piecesMap.end()) {
+        if (itr2->second->get_id() == 'P' or itr2->second->get_id() == 'p') {
+            Move move = {m_enPassantSquare, ENPASSAT};
+            if (!itr2->second->is_check_after_move(m_piecesMap, pos2, move))
+                itr2->second->add_possible_moves(move);
+        }
+    }
 }
 
 

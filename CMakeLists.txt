@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 17)
 include_directories(include)
 
 set(SOURCE_FILES src/pieces.cpp src/game.cpp src/move.cpp src/GUI.cpp)
-set(SOURCES_FILES_TESTS test/test_position.cpp test/test_movement.cpp test/test_castle.cpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
@@ -16,7 +15,8 @@ FetchContent_Declare(SFML
         GIT_TAG 2.6.x)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(Chess ${SOURCE_FILES} ${SOURCES_FILES_TESTS} main.cpp)
+add_executable(Chess ${SOURCE_FILES}
+        main.cpp)
 
 target_include_directories(Chess PUBLIC
         ../googletest-master/googlemock/include

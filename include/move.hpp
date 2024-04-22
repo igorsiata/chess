@@ -2,15 +2,15 @@
 #define CHESS_MOVE_HPP
 
 #include <utility>
+#include <map>
 
 using Position = std::pair<int, int>;
 
 enum MoveType {
-    OUT, EMPTY, CAPTURE, ALLY, CHECK
+    OUT, EMPTY, CAPTURE, ALLY, CHECK, CASTLE, ENPASSAT
 };
 
 struct Move {
-    Position startPosition;
     Position endPosition;
     MoveType moveType;
 };

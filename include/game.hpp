@@ -11,26 +11,32 @@
 
 class Game {
 public:
-    Game();
+    Game(const std::string& positionAsString
+    = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -");
 
-    void move(const Move& move);
 
-    void load_position(const std::string& positionAsString);
+    bool move(const Position& startPosition, const Position& endPosition);
 
-    void generate_position(std::ostream& os);
-
-    void generate_possible_moves();
-
-    void output_possible_moves(std::ostream& os);
-
-    Piece::PiecesMap get_pieces_map(){return  m_piecesMap;}
 
     std::vector<Move> get_piece_possible_moves(Position position);
 
-    std::vector<Position> get_piece_moves_end_position(Position position);
+    std::map<Position, char> get_all_pieces();
 
 private:
+    bool generate_possible_moves();
+
+    void rook_move(Position startPosition);
+
+    void en_passnat_square(Piece* pieceToMove, Position startPosition, Position endPosition);
+
+    void castle(Move moveItr);
+
+    void find_enpassant();
+
+    void load_position(const std::string& positionAsString);
+
     std::vector<Move> find_castles();
+
     Piece::PiecesMap m_piecesMap;
     bool m_whiteToMove;
     Position m_enPassantSquare;

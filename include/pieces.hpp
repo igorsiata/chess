@@ -14,28 +14,31 @@ public:
 
     Piece(Position position, bool white) : m_position(std::move(position)), m_white(white), m_id('q') {};
 
-    [[nodiscard]] Position get_position() const { return m_position; }
+    Position get_position() const { return m_position; }
 
-    [[nodiscard]] bool is_white() const { return m_white; }
+    bool is_white() const { return m_white; }
 
-    [[nodiscard]] std::vector<Move> get_possible_moves() const { return m_possibleMoves; }
+    std::vector<Move> get_possible_moves() const { return m_possibleMoves; }
 
-    [[nodiscard]] char get_id() const { return m_id; }
+    char get_id() const { return m_id; }
 
-    void find_possible_moves(const PiecesMap& allPieces);
+    bool find_possible_moves(const PiecesMap& allPieces, const bool isWhiteMove);
 
     virtual ~Piece() = default;
 
     void add_possible_moves(const std::vector<Move>& extraMoves);
 
-protected:
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
+    void add_possible_moves(const Move& extraMove);
+
+    void change_position(const Position& newPosition) { m_position = newPosition; }
+
+    bool is_check_after_move(const PiecesMap& allPieces,
+                             const Position& piecePostion,
+                             const Move& move) const;
+
 
     virtual std::vector<Move> find_all_moves(const PiecesMap& allPieces) { return {}; };
-#pragma clang diagnostic pop
-
-    [[nodiscard]] bool is_check_after_move(const PiecesMap& allPieces, Move move) const;
+protected:
 
     void set_possible_moves(std::vector<Move> possibleMoves) { m_possibleMoves = std::move(possibleMoves); };
 
@@ -96,7 +99,6 @@ public:
     King(const Position& position, bool white);
 
     std::vector<Move> find_all_moves(const std::map<Position, Piece*>& allPieces) override;
-
 
 
 };

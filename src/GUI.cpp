@@ -1,22 +1,26 @@
 #include "GUI.hpp"
 
 
-GUI::GUI(Game game) : m_window({ 800u, 800u }, "Chess"), m_game(game){
+GUI::GUI(Game game, int squareSize = 100)
+        : m_window({800u, 800u}, "Chess"),
+          m_game(game), m_squareSize(squareSize), m_clickedSquare(0, 0) {
     m_window.setFramerateLimit(60);
     generate_textures();
-    while (m_window.isOpen())
-    {
-        for (auto event = sf::Event{}; m_window.pollEvent(event);)
-        {
-            if (event.type == sf::Event::Closed)
-            {
+    while (m_window.isOpen()) {
+        for (auto event = sf::Event{}; m_window.pollEvent(event);) {
+            if (event.type == sf::Event::Closed) {
                 m_window.close();
+            }
+            if (event.type == sf::Event::MouseButtonPressed &&
+                sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+                left_mouse_button_clicked();
             }
         }
         m_window.clear();
         // draw sth
-        draw_chessboard(100.0);
-        draw_pieces(100.0);
+        draw_chessboard();
+        draw_possible_moves();
+        draw_pieces();
         m_window.display();
     }
 }
@@ -64,29 +68,29 @@ void GUI::generate_textures() {
 }
 
 
-void GUI::draw_chessboard(float squareSize) {
-    m_window.RenderTarget::clear(sf::Color(169,169,169));
-    for(std::size_t y = 0; y<=7;y++) {
-        for (std::size_t x = 0; x <=3; x++) {
+void GUI::draw_chessboard() {
+    m_window.RenderTarget::clear(sf::Color(169, 169, 169));
+    for (std::size_t y = 0; y <= 7; y++) {
+        for (std::size_t x = 0; x <= 3; x++) {
             sf::RectangleShape square;
-            square.setSize(sf::Vector2f(squareSize, squareSize));
+            square.setSize(sf::Vector2f(m_squareSize, m_squareSize));
             square.setFillColor(sf::Color(249, 246, 238));
-            square.setPosition(((x * 2 * squareSize) + squareSize * (y % 2)),
-                               (y * squareSize));
+            square.setPosition(((x * 2 * m_squareSize) + m_squareSize * (y % 2)),
+                               (y * m_squareSize));
             m_window.draw(square);
         }
     }
 }
 
-void GUI::draw_pieces(float squareSize) {
-    Piece::PiecesMap piecesMap = m_game.get_pieces_map();
+void GUI::draw_pieces() {
+    std::map<Position, char> allPieces = m_game.get_all_pieces();
 
-    for(auto elem : piecesMap){
-        int xPos = (elem.first.first-1) * 100;
-        int yPos = (elem.first.second-1) * 100;
+    for (auto elem: allPieces) {
+        int xPos = (elem.first.first - 1) * m_squareSize;
+        int yPos = (elem.first.second - 1) * m_squareSize;
         sf::RectangleShape piece;
-        piece.setSize(sf::Vector2f(squareSize, squareSize));
-        piece.setTexture(&m_textures[elem.second->get_id()]);
+        piece.setSize(sf::Vector2f(m_squareSize, m_squareSize));
+        piece.setTexture(&m_textures[elem.second]);
         piece.setPosition(xPos,
                           yPos);
         m_window.draw(piece);
@@ -94,6 +98,42 @@ void GUI::draw_pieces(float squareSize) {
 
 
 }
+
+Position GUI::get_mouse_position() {
+    sf::Vector2i position = sf::Mouse::getPosition(m_window);
+    Position pos(((int) position.x / 100) + 1, ((int) position.y / 100) + 1);
+    return pos;
+}
+
+void GUI::draw_possible_moves() {
+
+    std::vector<Move> possibleMoves = m_game.get_piece_possible_moves(m_clickedSquare);
+    for (auto move: possibleMoves) {
+        sf::RectangleShape square;
+        square.setSize(sf::Vector2f(m_squareSize, m_squareSize));
+        square.setFillColor(sf::Color(201, 77, 68, 128));
+        square.setPosition((move.endPosition.first - 1) * m_squareSize,
+                           (move.endPosition.second - 1) * m_squareSize);
+        m_window.draw(square);
+    }
+
+}
+
+void GUI::left_mouse_button_clicked() {
+    Position newClickedSquare = get_mouse_position();
+    m_game.move(m_clickedSquare, newClickedSquare);
+
+    m_clickedSquare = newClickedSquare;
+}
+
+
+
+
+
+
+
+
+
 
 
 

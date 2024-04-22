@@ -25,20 +25,27 @@ MoveType Piece::move_type(const PiecesMap& allPieces, Position move) const {
 }
 
 
-bool Piece::is_check_after_move(const PiecesMap& allPieces, Move move) const {
+bool Piece::is_check_after_move(const PiecesMap& allPieces,
+                                const Position& piecePosition,
+                                const Move& move) const {
     //create dummy pieces map after move
     PiecesMap dummyPiecesMap = allPieces;
     if (move.moveType == CAPTURE) {
         auto capturedPiece = dummyPiecesMap.find(move.endPosition);
-        //en passant move (only case when end position is not position of piece captured)
-        if(capturedPiece == dummyPiecesMap.end()){
-            capturedPiece = dummyPiecesMap.find(Position (move.endPosition.first,move.startPosition.second));
-        }
         dummyPiecesMap.erase(capturedPiece);
     }
-    auto movedPiece = dummyPiecesMap.find(move.startPosition);
-    dummyPiecesMap.insert({move.endPosition, movedPiece->second});
-    dummyPiecesMap.erase(movedPiece);
+    if (move.moveType == ENPASSAT) {
+        if (m_white) {
+            dummyPiecesMap.erase(Position(move.endPosition.first, 4));
+        } else {
+            dummyPiecesMap.erase(Position(move.endPosition.first, 5));
+        }
+    }
+    auto itr = dummyPiecesMap.find(piecePosition);
+    if (itr != dummyPiecesMap.end()) {
+        std::swap(dummyPiecesMap[move.endPosition], itr->second);
+        dummyPiecesMap.erase(itr);
+    }
 
 
     //check for checks
@@ -56,20 +63,33 @@ bool Piece::is_check_after_move(const PiecesMap& allPieces, Move move) const {
     return false;
 }
 
-void Piece::find_possible_moves(const Piece::PiecesMap& allPieces) {
+bool Piece::find_possible_moves(const Piece::PiecesMap& allPieces, const bool isWhiteMove) {
+    if (isWhiteMove != m_white) {
+        set_possible_moves(std::vector<Move>());
+        return false;
+    }
     std::vector<Move> allMoves = find_all_moves(allPieces);
     allMoves.erase(std::remove_if(
                            allMoves.begin(), allMoves.end(),
-                           [this, allPieces](auto itr) { return is_check_after_move(allPieces, itr); }),
+                           [this, allPieces](auto itr) {
+                               return is_check_after_move(allPieces, m_position, itr);
+                           }),
                    allMoves.end());
 
     set_possible_moves(allMoves);
+
+    return !allMoves.empty();
+
 }
 
 void Piece::add_possible_moves(const std::vector<Move>& extraMoves) {
     for (auto move: extraMoves) {
         m_possibleMoves.push_back(move);
     }
+}
+
+void Piece::add_possible_moves(const Move& extraMove) {
+    m_possibleMoves.push_back(extraMove);
 }
 
 
@@ -92,7 +112,7 @@ std::vector<Move> Bishop::find_all_moves(const PiecesMap& allPieces) {
                         get_position().first + i * step,
                         get_position().second + j * step);
                 moveType = move_type(allPieces, endPosition);
-                move = Move{get_position(), endPosition, moveType};
+                move = Move{endPosition, moveType};
                 switch (moveType) {
                     case OUT:
                         goto exit_loop;
@@ -140,7 +160,7 @@ std::vector<Move> Pawn::find_all_moves(const std::map<Position, Piece*>& allPiec
                 get_position().first,
                 get_position().second + 2 * color_mult);
         moveType = move_type(allPieces, endPosition);
-        move = Move{get_position(), endPosition, moveType};
+        move = Move{endPosition, moveType};
         if (move_type(allPieces, endPosition) == EMPTY) {
             possibleMoves.push_back(move);
         }
@@ -151,9 +171,11 @@ std::vector<Move> Pawn::find_all_moves(const std::map<Position, Piece*>& allPiec
             get_position().first,
             get_position().second + 1 * color_mult);
     moveType = move_type(allPieces, endPosition);
-    move = Move{get_position(), endPosition, moveType};
+    move = Move{endPosition, moveType};
     if (move_type(allPieces, endPosition) == EMPTY) {
         possibleMoves.push_back(move);
+    } else if (!possibleMoves.empty()) {
+        possibleMoves.pop_back();
     }
 
     //captures
@@ -162,7 +184,7 @@ std::vector<Move> Pawn::find_all_moves(const std::map<Position, Piece*>& allPiec
                 get_position().first + i,
                 get_position().second + 1 * color_mult);
         moveType = move_type(allPieces, endPosition);
-        move = Move{get_position(), endPosition, moveType};
+        move = Move{endPosition, moveType};
         if (move_type(allPieces, endPosition) == CAPTURE
             || move_type(allPieces, endPosition) == CHECK) {
             possibleMoves.push_back(move);
@@ -192,7 +214,7 @@ std::vector<Move> Rook::find_all_moves(const std::map<Position, Piece*>& allPiec
                     get_position().first + dx[i] * step,
                     get_position().second + dy[i] * step);
             moveType = move_type(allPieces, endPosition);
-            move = Move{get_position(), endPosition, moveType};
+            move = Move{endPosition, moveType};
             switch (moveType) {
                 case OUT:
                     goto exit_loop;
@@ -236,7 +258,7 @@ std::vector<Move> Kinght::find_all_moves(const std::map<Position, Piece*>& allPi
                 get_position().first + dx[i],
                 get_position().second + dy[i]);
         moveType = move_type(allPieces, endPosition);
-        move = Move{get_position(), endPosition, moveType};
+        move = Move{endPosition, moveType};
         switch (moveType) {
             case OUT:
                 break;
@@ -278,7 +300,7 @@ std::vector<Move> Queen::find_all_moves(const std::map<Position, Piece*>& allPie
                     get_position().first + dx[i] * step,
                     get_position().second + dy[i] * step);
             moveType = move_type(allPieces, endPosition);
-            move = Move{get_position(), endPosition, moveType};
+            move = Move{endPosition, moveType};
             switch (moveType) {
                 case OUT:
                     goto exit_loop;
@@ -321,7 +343,7 @@ std::vector<Move> King::find_all_moves(const std::map<Position, Piece*>& allPiec
                 get_position().first + dx[i],
                 get_position().second + dy[i]);
         moveType = move_type(allPieces, endPosition);
-        move = Move{get_position(), endPosition, moveType};
+        move = Move{endPosition, moveType};
         switch (moveType) {
             case OUT:
                 break;
