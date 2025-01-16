@@ -28,42 +28,42 @@ GUI::GUI(Game game, int squareSize = 100)
 void GUI::generate_textures() {
     //white pieces
     m_textures['K'] = sf::Texture();
-    if (!m_textures['K'].loadFromFile("../../textures/white_king.png"))
+    if (!m_textures['K'].loadFromFile("textures/white_king.png"))
         return;
     m_textures['Q'] = sf::Texture();
-    if (!m_textures['Q'].loadFromFile("../../textures/white_queen.png"))
+    if (!m_textures['Q'].loadFromFile("textures/white_queen.png"))
         return;
     m_textures['B'] = sf::Texture();
-    if (!m_textures['B'].loadFromFile("../../textures/white_bishop.png"))
+    if (!m_textures['B'].loadFromFile("textures/white_bishop.png"))
         return;
     m_textures['N'] = sf::Texture();
-    if (!m_textures['N'].loadFromFile("../../textures/white_kinght.png"))
+    if (!m_textures['N'].loadFromFile("textures/white_kinght.png"))
         return;
     m_textures['R'] = sf::Texture();
-    if (!m_textures['R'].loadFromFile("../../textures/white_rook.png"))
+    if (!m_textures['R'].loadFromFile("textures/white_rook.png"))
         return;
     m_textures['P'] = sf::Texture();
-    if (!m_textures['P'].loadFromFile("../../textures/white_pawn.png"))
+    if (!m_textures['P'].loadFromFile("textures/white_pawn.png"))
         return;
 
     //black pieces
     m_textures['k'] = sf::Texture();
-    if (!m_textures['k'].loadFromFile("../../textures/black_king.png"))
+    if (!m_textures['k'].loadFromFile("textures/black_king.png"))
         return;
     m_textures['q'] = sf::Texture();
-    if (!m_textures['q'].loadFromFile("../../textures/black_queen.png"))
+    if (!m_textures['q'].loadFromFile("textures/black_queen.png"))
         return;
     m_textures['b'] = sf::Texture();
-    if (!m_textures['b'].loadFromFile("../../textures/black_bishop.png"))
+    if (!m_textures['b'].loadFromFile("textures/black_bishop.png"))
         return;
     m_textures['n'] = sf::Texture();
-    if (!m_textures['n'].loadFromFile("../../textures/black_kinght.png"))
+    if (!m_textures['n'].loadFromFile("textures/black_kinght.png"))
         return;
     m_textures['r'] = sf::Texture();
-    if (!m_textures['r'].loadFromFile("../../textures/black_rook.png"))
+    if (!m_textures['r'].loadFromFile("textures/black_rook.png"))
         return;
     m_textures['p'] = sf::Texture();
-    if (!m_textures['p'].loadFromFile("../../textures/black_pawn.png"))
+    if (!m_textures['p'].loadFromFile("textures/black_pawn.png"))
         return;
 }
 

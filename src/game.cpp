@@ -31,12 +31,12 @@ bool Game::move(const Position& startPosition, const Position& endPosition) {
                 }
             }
             //black king move
-            if (startPosition.first == 5 and startPosition.second == 1) {
+            if (startPosition.first == 5 && startPosition.second == 1) {
                 m_CastlesAvailable['k'] = false;
                 m_CastlesAvailable['q'] = false;
             }
             // white king move
-            if (startPosition.first == 5 and startPosition.second == 8) {
+            if (startPosition.first == 5 && startPosition.second == 8) {
                 m_CastlesAvailable['K'] = false;
                 m_CastlesAvailable['Q'] = false;
             }
@@ -185,16 +185,16 @@ std::vector<Move> Game::find_castles() {
         canKingside = m_CastlesAvailable['k'];
         canQueeside = m_CastlesAvailable['q'];
     }
-    if (!canKingside and !canQueeside) {
+    if (!canKingside && !canQueeside) {
         return castles;
     }
-    // y -> row where king stands
+    // y -> row where king st&&s
     int y = 1 + int(m_whiteToMove) * 7;
 
     auto kingItr = m_piecesMap.find(Position(5, y));
 
 
-    //squares to check if they are empty and not under attack
+    //squares to check if they are empty && not under attack
 
     //empty kingside
     for (int i = 6; i < 8; i++) {
@@ -284,7 +284,7 @@ void Game::castle(Move moveItr) {
 }
 
 void Game::en_passnat_square(Piece* pieceToMove, Position startPosition, Position endPosition) {
-    if (pieceToMove->get_id() == 'p' or pieceToMove->get_id() == 'P') {
+    if (pieceToMove->get_id() == 'p' || pieceToMove->get_id() == 'P') {
         if (startPosition.second - endPosition.second == 2) {
             m_enPassantSquare = Position(startPosition.first, 6);
             return;
@@ -322,14 +322,14 @@ void Game::find_enpassant() {
     auto itr1 = m_piecesMap.find(pos1);
     auto itr2 = m_piecesMap.find(pos2);
     if (itr1 != m_piecesMap.end()) {
-        if (itr1->second->get_id() == 'P' or itr1->second->get_id() == 'p') {
+        if (itr1->second->get_id() == 'P' || itr1->second->get_id() == 'p') {
             Move move = {m_enPassantSquare, ENPASSAT};
             if (!itr1->second->is_check_after_move(m_piecesMap, pos1, move))
                 itr1->second->add_possible_moves(move);
         }
     }
     if (itr2 != m_piecesMap.end()) {
-        if (itr2->second->get_id() == 'P' or itr2->second->get_id() == 'p') {
+        if (itr2->second->get_id() == 'P' || itr2->second->get_id() == 'p') {
             Move move = {m_enPassantSquare, ENPASSAT};
             if (!itr2->second->is_check_after_move(m_piecesMap, pos2, move))
                 itr2->second->add_possible_moves(move);

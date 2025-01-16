@@ -155,7 +155,7 @@ std::vector<Move> Pawn::find_all_moves(const std::map<Position, Piece*>& allPiec
 
     //move 2 squares
     if ((is_white() && get_position().second == 7)
-        || (not is_white() && get_position().second == 2)) {
+        || (!is_white() && get_position().second == 2)) {
         endPosition = Position(
                 get_position().first,
                 get_position().second + 2 * color_mult);

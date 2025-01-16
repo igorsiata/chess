@@ -4,6 +4,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 include_directories(include)
 
+
+
 set(SOURCE_FILES src/pieces.cpp src/game.cpp src/move.cpp src/GUI.cpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -18,15 +20,15 @@ FetchContent_MakeAvailable(SFML)
 add_executable(Chess ${SOURCE_FILES}
         main.cpp)
 
-target_include_directories(Chess PUBLIC
-        ../googletest-master/googlemock/include
-        ../googletest-master/googletest/include
-        )
+# target_include_directories(Chess PUBLIC
+#         ../googletest-master/googlemock/include
+#         ../googletest-master/googletest/include
+#         )
 
-add_subdirectory(../googletest-master googletest-master)
+# add_subdirectory(../googletest-master googletest-master)
 
 
-target_link_libraries(Chess PUBLIC gtest PRIVATE sfml-graphics)
+target_link_libraries(Chess PRIVATE sfml-graphics)
 target_compile_features(Chess PRIVATE cxx_std_17)
 
 if(WIN32)
@@ -38,3 +40,7 @@ if(WIN32)
 endif()
 
 install(TARGETS Chess)
+
+add_custom_command(TARGET Chess POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/textures $<TARGET_FILE_DIR:Chess>/textures)
