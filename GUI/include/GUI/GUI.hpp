@@ -2,7 +2,7 @@
 #define CHESS_GUI_HPP
 
 #include <SFML/Graphics.hpp>
-#include "Game.hpp"
+#include "game.hpp"
 
 class GUI {
 public:

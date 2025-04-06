@@ -1,6 +1,6 @@
 #include <iostream>
 #include <filesystem>
-#include "GUI.hpp"
+#include "GUI/GUI.hpp"
 
 
 int main() {
