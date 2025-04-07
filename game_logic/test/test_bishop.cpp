@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "game_logic/bishop.hpp"
+#include "pieces/bishop.hpp"
 #include "helper_test_functions.hpp"
 
 TEST(TestBishop, MovesPositions)
@@ -9,10 +9,10 @@ TEST(TestBishop, MovesPositions)
     allPieces[bishop.getPosition()] = std::make_shared<Piece>(bishop);
     bishop.findPossibleMoves(allPieces);
     std::vector<Move> possibleMoves = bishop.getPossibleMoves();
-    Move move1 = {{7, 6}, EMPTY};
-    Move move2 = {{2, 1}, EMPTY};
-    Move move3 = {{4, 1}, EMPTY};
-    Move move4 = {{2, 3}, EMPTY};
+    Move move1({3,2}, {7, 6}, EMPTY);
+    Move move2({3,2}, {2, 1}, EMPTY);
+    Move move3({3,2}, {4, 1}, EMPTY);
+    Move move4({3,2}, {2, 3}, EMPTY);
 
     ASSERT_TRUE(contains(possibleMoves, move1));
     ASSERT_TRUE(contains(possibleMoves, move2));

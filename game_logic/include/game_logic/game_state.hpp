@@ -1,9 +1,13 @@
 #pragma once
 #include <vector>
-#include "game_logic/move.hpp"
+#include <typeinfo>
+#include "pieces/piece.hpp"
+#include <string>
 
 struct GameState{
+    PiecesMap piecesMap;
     bool isWhiteToMove;
-    std::vector<Position> availableCastlesSquares;
+    std::vector<Position> availableCastles;
+    bool isEnPassantPossible;
     Position enPassantSquare;
 };

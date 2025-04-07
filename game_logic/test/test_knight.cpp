@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
-#include "game_logic/knight.hpp"
+#include "pieces/knight.hpp"
 #include "helper_test_functions.hpp"
-
-
 
 TEST(TestKnight, MovesPositions)
 {
@@ -11,8 +9,8 @@ TEST(TestKnight, MovesPositions)
     allPieces[knight.getPosition()] = std::make_shared<Piece>(knight);
     knight.findPossibleMoves(allPieces);
     std::vector<Move> possibleMoves = knight.getPossibleMoves();
-    Move move1 = {{3, 2}, EMPTY};
-    Move move2 = {{2, 3}, EMPTY};
+    Move move1({1, 1}, {3, 2}, EMPTY);
+    Move move2({1, 1}, {2, 3}, EMPTY);
 
     ASSERT_TRUE(contains(possibleMoves, move1));
     ASSERT_TRUE(contains(possibleMoves, move2));

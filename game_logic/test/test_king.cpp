@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "game_logic/king.hpp"
+#include "pieces/king.hpp"
 #include "helper_test_functions.hpp"
 
 TEST(TestKing, MovesPositions)
@@ -9,14 +9,15 @@ TEST(TestKing, MovesPositions)
     allPieces[king.getPosition()] = std::make_shared<Piece>(king);
     king.findPossibleMoves(allPieces);
     std::vector<Move> possibleMoves = king.getPossibleMoves();
-    Move move1 = {{3, 1}, EMPTY};
-    Move move2 = {{3, 3}, EMPTY};
-    Move move3 = {{4, 2}, EMPTY};
-    Move move4 = {{2, 2}, EMPTY};
-    Move move5 = {{4, 1}, EMPTY};
-    Move move6 = {{2, 1}, EMPTY};
-    Move move7 = {{4, 3}, EMPTY};
-    Move move8 = {{2, 3}, EMPTY};
+    Position currentPostion = king.getPosition();
+    Move move1(currentPostion, {3, 1}, EMPTY);
+    Move move2(currentPostion, {3, 3}, EMPTY);
+    Move move3(currentPostion, {4, 2}, EMPTY);
+    Move move4(currentPostion, {2, 2}, EMPTY);
+    Move move5(currentPostion, {4, 1}, EMPTY);
+    Move move6(currentPostion, {2, 1}, EMPTY);
+    Move move7(currentPostion, {4, 3}, EMPTY);
+    Move move8(currentPostion, {2, 3}, EMPTY);
 
     ASSERT_TRUE(contains(possibleMoves, move1));
     ASSERT_TRUE(contains(possibleMoves, move2));
@@ -67,6 +68,6 @@ TEST(TestKing, EnemyCaptrue)
     std::vector<Move> possibleMoves = king.getPossibleMoves();
 
     ASSERT_EQ(possibleMoves.size(), 8);
-    ASSERT_TRUE(contains(possibleMoves, Move{{3, 3}, CAPTURE}));
-    ASSERT_TRUE(contains(possibleMoves, Move{{4, 3}, CAPTURE}));
+    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {3, 3}, CAPTURE)));
+    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {4, 3}, CAPTURE)));
 }

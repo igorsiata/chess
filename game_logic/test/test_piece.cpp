@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
-#include "game_logic/piece.hpp"
+#include "pieces/piece.hpp"
 
-
-TEST(TestPiece, TestConstructor){
-    Position position = {1,1};
+TEST(TestPiece, TestConstructor)
+{
+    Position position(1, 1);
     bool isWhite = true;
     Piece piece(position, isWhite);
 
@@ -11,11 +11,12 @@ TEST(TestPiece, TestConstructor){
     ASSERT_EQ(piece.getPosition(), position);
 }
 
-TEST(TestPiece, TestMove){
-    Position position = {1,1};
+TEST(TestPiece, TestMove)
+{
+    Position position(1, 1);
     bool isWhite = true;
     Piece piece(position, isWhite);
-    Position endPosition = {2,3};
+    Position endPosition(2, 3);
     piece.move(endPosition);
 
     ASSERT_EQ(piece.getPosition(), endPosition);

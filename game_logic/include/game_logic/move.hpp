@@ -5,36 +5,54 @@
 #include <map>
 #include <cstdint>
 
+enum MoveType
+{
+    OUT,
+    EMPTY,
+    CAPTURE,
+    ALLY,
+    CHECK,
+    CASTLE,
+    ENPASSAT
 
-enum MoveType {
-    OUT, EMPTY, CAPTURE, ALLY, CHECK, CASTLE, ENPASSAT
-    
 };
 
-struct Position {
+struct Position
+{
     int x;
     int y;
 
-    bool operator==(const Position& other) const {
+    Position() = default;
+    Position(int x, int y) : x(x), y(y) {}
+
+    bool operator==(const Position &other) const
+    {
         return x == other.x && y == other.y;
     }
 
-    bool operator<(const Position& other) const {
-        if (x == other.x) {
+    bool operator<(const Position &other) const
+    {
+        if (x == other.x)
+        {
             return y < other.y;
         }
         return x < other.x;
     }
 };
 
-struct Move {
+struct Move
+{
+    Position startPosition;
     Position endPosition;
     MoveType moveType;
 
-    bool operator==(const Move& other) const {
-        return endPosition == other.endPosition && moveType == other.moveType;
+    Move() = default;
+    Move(Position sP, Position eP, MoveType mT) : startPosition(sP), endPosition(eP), moveType(mT) {}
+
+    bool operator==(const Move &other) const
+    {
+        return endPosition == other.endPosition && moveType == other.moveType && startPosition == other.startPosition;
     }
 };
 
-
-#endif //CHESS_MOVE_HPP
+#endif // CHESS_MOVE_HPP

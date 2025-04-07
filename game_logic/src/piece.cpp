@@ -1,10 +1,7 @@
-#pragma once
+#include "pieces/piece.hpp"
 
-#include "game_logic/piece.hpp"
-
-inline MoveType calculateMoveType(const bool pieceColor,
-                                  const Position move,
-                                  const PiecesMap &allPieces)
+MoveType Piece::calculateMoveType(const Position move,
+                           const PiecesMap &allPieces)
 {
     // is move out of board
     if (move.x < 1 || move.x > 8 || move.y < 1 || move.y > 8)
@@ -17,7 +14,7 @@ inline MoveType calculateMoveType(const bool pieceColor,
         return MoveType::EMPTY;
     }
     // is move colliding with any other piece
-    if (pieceAtMovePosition->second->isWhite() == pieceColor)
+    if (pieceAtMovePosition->second->isWhite() == m_isWhite)
     {
         return MoveType::ALLY;
     }

@@ -1,11 +1,11 @@
-#include "game_logic/pawn.hpp"
+#include "pieces/pawn.hpp"
 
 void Pawn::findPossibleMoves(const PiecesMap &allPieces)
 {
     std::vector<Move> possibleMoves;
     MoveType moveType;
     Position endPosition;
-    Move move;
+    Position currentPosition = getPosition();
     int colorMult = 1;
     if (isWhite())
     {
@@ -13,28 +13,24 @@ void Pawn::findPossibleMoves(const PiecesMap &allPieces)
     }
 
     // move 2 squares
-    if ((isWhite() && getPosition().y == 7) || (!isWhite() && getPosition().y == 2))
+    if ((isWhite() && currentPosition.y == 7) || (!isWhite() && currentPosition.y == 2))
     {
-        endPosition = {
-            getPosition().x,
-            getPosition().y + 2 * colorMult};
-        moveType = calculateMoveType(isWhite(), endPosition, allPieces);
-        move = Move{endPosition, moveType};
+        endPosition = {currentPosition.x,
+                       currentPosition.y + 2 * colorMult};
+        moveType = calculateMoveType(endPosition, allPieces);
         if (moveType == EMPTY)
         {
-            possibleMoves.push_back(move);
+            possibleMoves.emplace_back(currentPosition, endPosition, moveType);
         }
     }
 
     // move 1 square
-    endPosition = {
-        getPosition().x,
-        getPosition().y + 1 * colorMult};
-    moveType = calculateMoveType(isWhite(), endPosition, allPieces);
-    move = Move{endPosition, moveType};
+    endPosition = {currentPosition.x,
+                   currentPosition.y + 1 * colorMult};
+    moveType = calculateMoveType(endPosition, allPieces);
     if (moveType == EMPTY)
     {
-        possibleMoves.push_back(move);
+        possibleMoves.emplace_back(currentPosition, endPosition, moveType);
     }
     else if (!possibleMoves.empty())
     {
@@ -44,14 +40,12 @@ void Pawn::findPossibleMoves(const PiecesMap &allPieces)
     // captures
     for (int i = -1; i <= 1; i += 2)
     {
-        endPosition = {
-            getPosition().x + i,
-            getPosition().y + 1 * colorMult};
-        moveType = calculateMoveType(isWhite(), endPosition, allPieces);
-        move = Move{endPosition, moveType};
+        endPosition = {currentPosition.x + i,
+                       currentPosition.y + 1 * colorMult};
+        moveType = calculateMoveType(endPosition, allPieces);
         if (moveType == CAPTURE)
         {
-            possibleMoves.push_back(move);
+            possibleMoves.emplace_back(currentPosition, endPosition, moveType);
         }
     }
     m_possibleMoves = possibleMoves;

@@ -1,35 +1,21 @@
-#include "game_logic/knight.hpp"
+#include "pieces/knight.hpp"
 
 void Knight::findPossibleMoves(const PiecesMap &allPieces)
 {
     std::vector<Move> possibleMoves;
     MoveType moveType;
+    Position currentPosition = getPosition();
     Position endPosition;
-    Move move;
     int dx[8] = {2, 2, 1, 1, -1, -1, -2, -2};
     int dy[8] = {1, -1, 2, -2, 2, -2, 1, -1};
     for (int i = 0; i < 8; i++)
     {
-        endPosition = {
-            getPosition().x + dx[i],
-            getPosition().y + dy[i]};
-        moveType = calculateMoveType(isWhite(), endPosition, allPieces);
-        move = Move{endPosition, moveType};
-        switch (moveType)
+        endPosition = {currentPosition.x + dx[i],
+                       currentPosition.y + dy[i]};
+        moveType = calculateMoveType(endPosition, allPieces);
+        if (moveType == EMPTY || moveType == CAPTURE)
         {
-        case OUT:
-            break;
-        case EMPTY:
-            possibleMoves.push_back(move);
-            break;
-        case CAPTURE:
-            possibleMoves.push_back(move);
-            break;
-        case ALLY:
-            break;
-        case CHECK:
-            possibleMoves.push_back(move);
-            break;
+            possibleMoves.emplace_back(currentPosition, endPosition, moveType);
         }
     }
     m_possibleMoves = possibleMoves;

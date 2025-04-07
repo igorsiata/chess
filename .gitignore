@@ -1,8 +1,5 @@
 # TEMP
-game.cpp
-game.hpp
-pieces.cpp
-pieces.hpp
+ignore_folder
 
 # Prerequisites
 *.d

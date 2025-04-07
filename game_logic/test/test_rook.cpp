@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "game_logic/rook.hpp"
+#include "pieces/rook.hpp"
 #include "helper_test_functions.hpp"
 
 TEST(TestRook, MovesPositions)
@@ -9,10 +9,10 @@ TEST(TestRook, MovesPositions)
     allPieces[rook.getPosition()] = std::make_shared<Piece>(rook);
     rook.findPossibleMoves(allPieces);
     std::vector<Move> possibleMoves = rook.getPossibleMoves();
-    Move move1 = {{3, 1}, EMPTY};
-    Move move2 = {{3, 6}, EMPTY};
-    Move move3 = {{7, 2}, EMPTY};
-    Move move4 = {{1, 2}, EMPTY};
+    Move move1({3, 2}, {3, 1}, EMPTY);
+    Move move2({3, 2}, {3, 6}, EMPTY);
+    Move move3({3, 2}, {7, 2}, EMPTY);
+    Move move4({3, 2}, {1, 2}, EMPTY);
 
     ASSERT_TRUE(contains(possibleMoves, move1));
     ASSERT_TRUE(contains(possibleMoves, move2));
@@ -59,6 +59,6 @@ TEST(TestRook, EnemyCaptrue)
     std::vector<Move> possibleMoves = rook.getPossibleMoves();
 
     ASSERT_EQ(possibleMoves.size(), 12);
-    ASSERT_TRUE(contains(possibleMoves, Move{{7, 4}, CAPTURE}));
-    ASSERT_TRUE(contains(possibleMoves, Move{{4, 2}, CAPTURE}));
+    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {7, 4}, CAPTURE)));
+    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {4, 2}, CAPTURE)));
 }

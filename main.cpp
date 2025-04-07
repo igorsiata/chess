@@ -4,7 +4,7 @@
 
 
 int main() {
-    Game game;
+    GameInterface game;
     GUI gui(game, 100);
     return 0;
 }
