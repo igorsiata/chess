@@ -19,14 +19,14 @@ TEST(TestKing, MovesPositions)
     Move move7(currentPostion, {4, 3}, EMPTY);
     Move move8(currentPostion, {2, 3}, EMPTY);
 
-    ASSERT_TRUE(contains(possibleMoves, move1));
-    ASSERT_TRUE(contains(possibleMoves, move2));
-    ASSERT_TRUE(contains(possibleMoves, move3));
-    ASSERT_TRUE(contains(possibleMoves, move4));
-    ASSERT_TRUE(contains(possibleMoves, move5));
-    ASSERT_TRUE(contains(possibleMoves, move6));
-    ASSERT_TRUE(contains(possibleMoves, move7));
-    ASSERT_TRUE(contains(possibleMoves, move8));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move1));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move2));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move3));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move4));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move5));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move6));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move7));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move8));
 }
 
 TEST(TestKing, MovesCount)
@@ -68,6 +68,6 @@ TEST(TestKing, EnemyCaptrue)
     std::vector<Move> possibleMoves = king.getPossibleMoves();
 
     ASSERT_EQ(possibleMoves.size(), 8);
-    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {3, 3}, CAPTURE)));
-    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {4, 3}, CAPTURE)));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, Move({4, 4}, {3, 3}, CAPTURE)));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, Move({4, 4}, {4, 3}, CAPTURE)));
 }

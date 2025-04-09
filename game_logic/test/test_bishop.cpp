@@ -14,10 +14,10 @@ TEST(TestBishop, MovesPositions)
     Move move3({3,2}, {4, 1}, EMPTY);
     Move move4({3,2}, {2, 3}, EMPTY);
 
-    ASSERT_TRUE(contains(possibleMoves, move1));
-    ASSERT_TRUE(contains(possibleMoves, move2));
-    ASSERT_TRUE(contains(possibleMoves, move3));
-    ASSERT_TRUE(contains(possibleMoves, move4));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move1));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move2));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move3));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move4));
 }
 
 TEST(TestBishop, MovesCount)

@@ -14,10 +14,10 @@ TEST(TestRook, MovesPositions)
     Move move3({3, 2}, {7, 2}, EMPTY);
     Move move4({3, 2}, {1, 2}, EMPTY);
 
-    ASSERT_TRUE(contains(possibleMoves, move1));
-    ASSERT_TRUE(contains(possibleMoves, move2));
-    ASSERT_TRUE(contains(possibleMoves, move3));
-    ASSERT_TRUE(contains(possibleMoves, move4));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move1));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move2));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move3));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move4));
 }
 
 TEST(TestRook, MovesCount)
@@ -59,6 +59,6 @@ TEST(TestRook, EnemyCaptrue)
     std::vector<Move> possibleMoves = rook.getPossibleMoves();
 
     ASSERT_EQ(possibleMoves.size(), 12);
-    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {7, 4}, CAPTURE)));
-    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {4, 2}, CAPTURE)));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, Move({4, 4}, {7, 4}, CAPTURE)));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, Move({4, 4}, {4, 2}, CAPTURE)));
 }

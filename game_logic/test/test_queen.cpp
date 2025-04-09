@@ -18,14 +18,14 @@ TEST(TestQueen, MovesPositions)
     Move move7({3, 2}, {4, 1}, EMPTY);
     Move move8({3, 2}, {2, 3}, EMPTY);
 
-    ASSERT_TRUE(contains(possibleMoves, move1));
-    ASSERT_TRUE(contains(possibleMoves, move2));
-    ASSERT_TRUE(contains(possibleMoves, move3));
-    ASSERT_TRUE(contains(possibleMoves, move4));
-    ASSERT_TRUE(contains(possibleMoves, move5));
-    ASSERT_TRUE(contains(possibleMoves, move6));
-    ASSERT_TRUE(contains(possibleMoves, move7));
-    ASSERT_TRUE(contains(possibleMoves, move8));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move1));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move2));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move3));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move4));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move5));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move6));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move7));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move8));
 }
 
 TEST(TestQueen, MovesCount)
@@ -67,6 +67,6 @@ TEST(TestQueen, EnemyCaptrue)
     std::vector<Move> possibleMoves = queen.getPossibleMoves();
 
     ASSERT_EQ(possibleMoves.size(), 25);
-    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {7, 4}, CAPTURE)));
-    ASSERT_TRUE(contains(possibleMoves, Move({4, 4}, {4, 2}, CAPTURE)));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, Move({4, 4}, {7, 4}, CAPTURE)));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, Move({4, 4}, {4, 2}, CAPTURE)));
 }

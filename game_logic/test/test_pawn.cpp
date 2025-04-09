@@ -16,8 +16,8 @@ TEST(TestPawn, MoveForward)
     Move moveOneSquare(currentPosition, Position(1, 6), EMPTY);
     Move moveTwoSquares(currentPosition, Position(1, 5), EMPTY);
 
-    ASSERT_TRUE(contains(possibleMoves, moveOneSquare));
-    ASSERT_TRUE(contains(possibleMoves, moveTwoSquares));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, moveOneSquare));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, moveTwoSquares));
     ASSERT_EQ(possibleMoves.size(), 2);
 }
 
@@ -33,7 +33,7 @@ TEST(TestPawn, Capture)
     std::vector<Move> possibleMoves = pawn.getPossibleMoves();
     Move capture(pawn.getPosition(), Position(2, 6), CAPTURE);
 
-    ASSERT_TRUE(contains(pawn.getPossibleMoves(), capture));
+    ASSERT_TRUE(moveListContainsMove(pawn.getPossibleMoves(), capture));
     ASSERT_EQ(possibleMoves.size(), 3);
 }
 
@@ -59,7 +59,7 @@ TEST(TestPawn, BlackPawnMove){
     Move moveOneSquare(pawn.getPosition(), Position(4, 3), EMPTY);
     Move moveTwoSquares(pawn.getPosition(), Position(4, 4), EMPTY);
 
-    ASSERT_TRUE(contains(possibleMoves, moveOneSquare));
-    ASSERT_TRUE(contains(possibleMoves, moveTwoSquares));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, moveOneSquare));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, moveTwoSquares));
     ASSERT_EQ(possibleMoves.size(), 2);
 }

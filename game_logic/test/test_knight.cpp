@@ -12,8 +12,8 @@ TEST(TestKnight, MovesPositions)
     Move move1({1, 1}, {3, 2}, EMPTY);
     Move move2({1, 1}, {2, 3}, EMPTY);
 
-    ASSERT_TRUE(contains(possibleMoves, move1));
-    ASSERT_TRUE(contains(possibleMoves, move2));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move1));
+    ASSERT_TRUE(moveListContainsMove(possibleMoves, move2));
 }
 
 TEST(TestKnight, MovesCount)
