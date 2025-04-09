@@ -3,13 +3,13 @@
 std::vector<Move> LegalMovesGenerator::generateLegalMoves(const GameState &gameState)
 {
     m_gameState = gameState;
-    generateBasicMoves();
-    return m_legalMoves;
+    std::vector<Move> legalMoves = generateLegalMoves();
+    return legalMoves;
 }
 
-void LegalMovesGenerator::generateBasicMoves()
+std::vector<Move> LegalMovesGenerator::generateLegalMoves()
 {
-    std::vector<Move> semiLegalMoves;
+    std::vector<Move> legalMoves;
     for (const auto &positionAndPiece : m_gameState.piecesMap)
     {
         const auto &piecePtr = positionAndPiece.second;
@@ -17,8 +17,18 @@ void LegalMovesGenerator::generateBasicMoves()
             continue;
         piecePtr->findPossibleMoves(m_gameState.piecesMap);
         std::vector<Move> newMoves = piecePtr->getPossibleMoves();
-        semiLegalMoves.insert(semiLegalMoves.end(), newMoves.begin(), newMoves.end());
+        filterIllegallMoves(newMoves);
+        legalMoves.insert(legalMoves.end(), newMoves.begin(), newMoves.end());
     }
+    return legalMoves;
+}
+
+void LegalMovesGenerator::filterIllegallMoves(std::vector<Move> &moves) {
+    moves.erase(
+        std::remove_if(moves.begin(), moves.end(),
+            [this](const Move &move) { return isCheckAfterMove(move); }),
+            moves.end()
+    );
 }
 
 Position LegalMovesGenerator::getKingPosition()
@@ -34,21 +44,32 @@ Position LegalMovesGenerator::getKingPosition()
 
 bool LegalMovesGenerator::isKingUnderAttack(const Position &kingPosition, const GameState &gameState)
 {
-    for (const auto &positionAndPiece : m_gameState.piecesMap)
+    for (const auto &positionAndPiece : gameState.piecesMap)
     {
         const auto &piecePtr = positionAndPiece.second;
         if (piecePtr->isWhite() != m_gameState.isWhiteToMove)
         {
             piecePtr->findPossibleMoves(gameState.piecesMap);
             std::vector<Move> possibleMoves = piecePtr->getPossibleMoves();
+            auto it = std::find_if(possibleMoves.begin(),
+                                   possibleMoves.end(),
+                                   [&kingPosition](const Move &elem)
+                                   { return elem.endPosition == kingPosition; });
+            if (it != possibleMoves.end())
+                return true;
         }
     }
+    return false;
 }
 
 bool LegalMovesGenerator::isCheckAfterMove(const Move &move)
 {
+    Position kingPosition = getKingPosition();
+    if (move.startPosition == kingPosition)
+        kingPosition = move.endPosition;
     GameState dummyGameState = m_gameState;
-    return false;
+    makeMove(move, dummyGameState);
+    return isKingUnderAttack(kingPosition, dummyGameState);
 }
 
 void LegalMovesGenerator::makeMove(const Move &move, GameState &gameState)

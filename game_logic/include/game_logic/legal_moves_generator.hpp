@@ -15,7 +15,8 @@ private:
     std::vector<Move> m_legalMoves;
     GameState m_gameState;
 
-    void generateBasicMoves();
+    std::vector<Move>  generateLegalMoves();
+    void filterIllegallMoves(std::vector<Move> &moves);
     Position getKingPosition();
     bool isKingUnderAttack(const Position &kingPosition, const GameState &gameState);
     bool isCheckAfterMove(const Move &move);
