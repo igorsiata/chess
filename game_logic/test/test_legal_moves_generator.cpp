@@ -7,26 +7,23 @@
 TEST(TestLegalMovesGenerator, GetKingPosition)
 {
     GameState gameState;
-    gameState.isWhiteToMove = true;
-    gameState.piecesMap[Position(3, 2)] = std::make_shared<King>(Position(3, 2), true);
-    gameState.piecesMap[Position(3, 3)] = std::make_shared<Bishop>(Position(3, 3), true);
-    gameState.piecesMap[Position(6, 7)] = std::make_shared<King>(Position(6, 7), false);
+    std::string positionFEN = "8/2K5/2B5/8/8/5k2/8/8 w";
+    gameState.loadGameStateFromFEN(positionFEN);
     LegalMovesGenerator legalMovesGenerator;
     legalMovesGenerator.generateLegalMoves(gameState);
 
-    EXPECT_EQ(legalMovesGenerator.getKingPosition(), Position(3, 2));
+    EXPECT_EQ(legalMovesGenerator.getKingPosition(gameState), Position(3, 2));
 }
 
 TEST(TestLegalMovesGenerator, KingMoves1)
 {
     GameState gameState;
-    gameState.isWhiteToMove = true;
-    gameState.piecesMap[Position(3, 2)] = std::make_shared<King>(Position(3, 2), true);
-    gameState.piecesMap[Position(3, 3)] = std::make_shared<Bishop>(Position(3, 3), false);
-    gameState.piecesMap[Position(6, 7)] = std::make_shared<King>(Position(6, 7), false);
-
+    std::string positionFEN = "8/2K5/2b5/8/8/5k2/8/8 w";
+    gameState.loadGameStateFromFEN(positionFEN);
     LegalMovesGenerator legalMovesGenerator;
+
     std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
+
     EXPECT_EQ(legalMoves.size(), 6);
     EXPECT_FALSE(moveListContainsMove(legalMoves, {{3,2}, {2,2}, EMPTY}));
     EXPECT_FALSE(moveListContainsMove(legalMoves, {{3,2}, {4,2}, EMPTY}));
@@ -36,16 +33,12 @@ TEST(TestLegalMovesGenerator, KingMoves1)
 TEST(TestLegalMovesGenerator, PieceCapture)
 {
     GameState gameState;
-    gameState.isWhiteToMove = false;
-    gameState.piecesMap[Position(6, 6)] = std::make_shared<King>(Position(6, 6), false);
-    gameState.piecesMap[Position(5, 5)] = std::make_shared<Bishop>(Position(5, 5), false);
-    gameState.piecesMap[Position(4, 4)] = std::make_shared<Bishop>(Position(4, 4), true);
-    gameState.piecesMap[Position(8, 6)] = std::make_shared<King>(Position(8, 6), true);
-    gameState.piecesMap[Position(8, 3)] = std::make_shared<Queen>(Position(8, 3), true);
-
-
+    std::string positionFEN = "8/8/7Q/3B4/4b3/5k1K/8/8 b";
+    gameState.loadGameStateFromFEN(positionFEN);
     LegalMovesGenerator legalMovesGenerator;
+
     std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
+
     EXPECT_EQ(legalMoves.size(), 3);
     EXPECT_TRUE(moveListContainsMove(legalMoves, {{6,6}, {6,7}, EMPTY}));
     EXPECT_TRUE(moveListContainsMove(legalMoves, {{6,6}, {5,7}, EMPTY}));
@@ -55,14 +48,22 @@ TEST(TestLegalMovesGenerator, PieceCapture)
 TEST(TestLegalMovesGenerator, DiscoveredCheck)
 {
     GameState gameState;
-    gameState.isWhiteToMove = false;
-    gameState.piecesMap[Position(6, 6)] = std::make_shared<King>(Position(6, 6), false);
-    gameState.piecesMap[Position(6, 5)] = std::make_shared<Bishop>(Position(6, 5), false);
-    gameState.piecesMap[Position(6, 4)] = std::make_shared<Queen>(Position(6, 4), true);
-
-
+    std::string positionFEN = "8/8/8/5Q2/5b2/5k2/8/8 b";
+    gameState.loadGameStateFromFEN(positionFEN);
     LegalMovesGenerator legalMovesGenerator;
+
     std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
     EXPECT_EQ(legalMoves.size(), 5);
     EXPECT_FALSE(moveListContainsMove(legalMoves, {{6,5}, {5,4}, EMPTY}));
+}
+
+TEST(TestLegalMovesGenerator, StartPosition)
+{
+    GameState gameState;
+    std::string positionFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w";
+    gameState.loadGameStateFromFEN(positionFEN);
+    LegalMovesGenerator legalMovesGenerator;
+
+    std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
+    EXPECT_EQ(legalMoves.size(), 20);
 }

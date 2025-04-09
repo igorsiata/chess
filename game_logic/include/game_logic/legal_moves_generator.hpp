@@ -13,13 +13,11 @@ public:
 
 private:
     std::vector<Move> m_legalMoves;
-    GameState m_gameState;
 
     std::vector<Move>  generateLegalMoves();
-    void filterIllegallMoves(std::vector<Move> &moves);
-    Position getKingPosition();
+    void filterIllegallMoves(std::vector<Move> &moves, const GameState &gameState);
+    Position getKingPosition(const GameState &gameState);
     bool isKingUnderAttack(const Position &kingPosition, const GameState &gameState);
-    bool isCheckAfterMove(const Move &move);
-    void makeMove(const Move &move, GameState &gameState);
+    bool isCheckAfterMove(const Move &move, const GameState &gameState);
     FRIEND_TEST(TestLegalMovesGenerator, GetKingPosition);
 };

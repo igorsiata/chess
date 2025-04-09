@@ -19,7 +19,7 @@ GUI::GUI(GameInterface gameInterface, int squareSize = 100)
         m_window.clear();
         // draw sth
         draw_chessboard();
-        // draw_possible_moves();
+        draw_possible_moves();
         draw_pieces();
         m_window.display();
     }
@@ -105,25 +105,26 @@ Position GUI::get_mouse_position() {
     return pos;
 }
 
-// void GUI::draw_possible_moves() {
+void GUI::draw_possible_moves() {
 
-//     std::vector<Move> possibleMoves = m_gameInterface.get_piece_possible_moves(m_clickedSquare);
-//     for (auto move: possibleMoves) {
-//         sf::RectangleShape square;
-//         square.setSize(sf::Vector2f(m_squareSize, m_squareSize));
-//         square.setFillColor(sf::Color(201, 77, 68, 128));
-//         square.setPosition((move.endPosition.first - 1) * m_squareSize,
-//                            (move.endPosition.second - 1) * m_squareSize);
-//         m_window.draw(square);
-//     }
+    std::vector<Move> possibleMoves = m_gameInterface.getPiecePossibleMoves(m_clickedSquare);
+    for (auto move: possibleMoves) {
+        sf::RectangleShape square;
+        square.setSize(sf::Vector2f(m_squareSize, m_squareSize));
+        square.setFillColor(sf::Color(201, 77, 68, 128));
+        square.setPosition((move.endPosition.x - 1) * m_squareSize,
+                           (move.endPosition.y - 1) * m_squareSize);
+        m_window.draw(square);
+    }
 
-// }
+}
 
 void GUI::left_mouse_button_clicked() {
     Position newClickedSquare = get_mouse_position();
     // m_gameInterface.move(m_clickedSquare, newClickedSquare);
 
     m_clickedSquare = newClickedSquare;
+    // std::cout<<m_clickedSquare.x<<","<<m_clickedSquare.y<<"\n";
 }
 
 

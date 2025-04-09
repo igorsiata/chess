@@ -9,7 +9,7 @@ class GameInterface
 public:
     GameInterface();
     std::map<Position, char> getPiecesAsChar() const;
-
+    std::vector<Move> getPiecePossibleMoves(const Position &piecePosition);
 private:
     Game m_game;
 };

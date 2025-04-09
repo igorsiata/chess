@@ -2,14 +2,14 @@
 
 #include "pieces/piece.hpp"
 #include "game_logic/game_state.hpp"
-#include "game_logic/position_loader.hpp"
-#include <string>
+#include "game_logic/legal_moves_generator.hpp"
 class Game
 {
 public:
     void makeMove(std::shared_ptr<Piece> piece, const Move move);
-    void loadPosition(const std::string &positionFEN);
-    PiecesMap getPiecesMap() const {return m_gameState.piecesMap;}
+    void loadPositionFEN(const std::string &positionFEN);
+    std::vector<Move> getPossibleMoves();
+    PiecesMap getPiecesMap() const {return m_gameState.getPiecesMap();}
 private:
     GameState m_gameState;
 };

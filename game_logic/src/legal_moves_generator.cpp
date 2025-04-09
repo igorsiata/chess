@@ -1,42 +1,38 @@
 #include "game_logic/legal_moves_generator.hpp"
 
+
 std::vector<Move> LegalMovesGenerator::generateLegalMoves(const GameState &gameState)
 {
-    m_gameState = gameState;
-    std::vector<Move> legalMoves = generateLegalMoves();
-    return legalMoves;
-}
-
-std::vector<Move> LegalMovesGenerator::generateLegalMoves()
-{
     std::vector<Move> legalMoves;
-    for (const auto &positionAndPiece : m_gameState.piecesMap)
+    PiecesMap piecesMap = gameState.getPiecesMap();
+    for (const auto &positionAndPiece : piecesMap)
     {
         const auto &piecePtr = positionAndPiece.second;
-        if (piecePtr->isWhite() != m_gameState.isWhiteToMove)
+        if (piecePtr->isWhite() != gameState.isWhiteToMove())
             continue;
-        piecePtr->findPossibleMoves(m_gameState.piecesMap);
+        piecePtr->findPossibleMoves(piecesMap);
         std::vector<Move> newMoves = piecePtr->getPossibleMoves();
-        filterIllegallMoves(newMoves);
+        filterIllegallMoves(newMoves, gameState);
         legalMoves.insert(legalMoves.end(), newMoves.begin(), newMoves.end());
     }
     return legalMoves;
 }
 
-void LegalMovesGenerator::filterIllegallMoves(std::vector<Move> &moves) {
+void LegalMovesGenerator::filterIllegallMoves(std::vector<Move> &moves, const GameState &gameState) {
     moves.erase(
         std::remove_if(moves.begin(), moves.end(),
-            [this](const Move &move) { return isCheckAfterMove(move); }),
+            [this, gameState](const Move &move)
+             { return isCheckAfterMove(move, gameState); }),
             moves.end()
     );
 }
 
-Position LegalMovesGenerator::getKingPosition()
+Position LegalMovesGenerator::getKingPosition(const GameState &gameState)
 {
-    for (const auto &positionAndPiece : m_gameState.piecesMap)
+    for (const auto &positionAndPiece : gameState.getPiecesMap())
     {
         const auto &piecePtr = positionAndPiece.second;
-        if (piecePtr->isWhite() == m_gameState.isWhiteToMove && typeid(*piecePtr) == typeid(King))
+        if (piecePtr->isWhite() == gameState.isWhiteToMove() && typeid(*piecePtr) == typeid(King))
             return positionAndPiece.first;
     }
     return Position(0, 0);
@@ -44,12 +40,13 @@ Position LegalMovesGenerator::getKingPosition()
 
 bool LegalMovesGenerator::isKingUnderAttack(const Position &kingPosition, const GameState &gameState)
 {
-    for (const auto &positionAndPiece : gameState.piecesMap)
+    PiecesMap piecesMap = gameState.getPiecesMap();
+    for (const auto &positionAndPiece : piecesMap)
     {
         const auto &piecePtr = positionAndPiece.second;
-        if (piecePtr->isWhite() != m_gameState.isWhiteToMove)
+        if (piecePtr->isWhite() != gameState.isWhiteToMove())
         {
-            piecePtr->findPossibleMoves(gameState.piecesMap);
+            piecePtr->findPossibleMoves(piecesMap);
             std::vector<Move> possibleMoves = piecePtr->getPossibleMoves();
             auto it = std::find_if(possibleMoves.begin(),
                                    possibleMoves.end(),
@@ -62,23 +59,13 @@ bool LegalMovesGenerator::isKingUnderAttack(const Position &kingPosition, const 
     return false;
 }
 
-bool LegalMovesGenerator::isCheckAfterMove(const Move &move)
+bool LegalMovesGenerator::isCheckAfterMove(const Move &move, const GameState &gameState)
 {
-    Position kingPosition = getKingPosition();
+    Position kingPosition = getKingPosition(gameState);
     if (move.startPosition == kingPosition)
         kingPosition = move.endPosition;
-    GameState dummyGameState = m_gameState;
-    makeMove(move, dummyGameState);
+    GameState dummyGameState = gameState;
+    dummyGameState.updateGameState(move);
     return isKingUnderAttack(kingPosition, dummyGameState);
 }
 
-void LegalMovesGenerator::makeMove(const Move &move, GameState &gameState)
-{
-    if (move.moveType == CAPTURE)
-    {
-        gameState.piecesMap.erase(move.endPosition);
-    }
-    auto pieceHandler = gameState.piecesMap.extract(move.startPosition);
-    pieceHandler.key() = move.endPosition;
-    gameState.piecesMap.insert(std::move(pieceHandler));
-}

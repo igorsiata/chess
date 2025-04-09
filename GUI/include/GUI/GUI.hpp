@@ -3,6 +3,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "GUI/game_interface.hpp"
+#include <stdio.h>
 
 class GUI {
 public:

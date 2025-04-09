@@ -13,7 +13,6 @@ add_library(${PROJECT_NAME}
     src/king.cpp
     src/game_state.cpp
     src/game.cpp
-    src/position_loader.cpp
     src/legal_moves_generator.cpp
 )
 add_library(sub::game_logic ALIAS ${PROJECT_NAME})
@@ -32,7 +31,7 @@ add_executable(test_game_logic
     test/test_rook.cpp
     test/test_queen.cpp
     test/test_king.cpp
-    test/test_position_loader.cpp
+    test/test_game_state.cpp
     test/test_legal_moves_generator.cpp
     # test/test_game.cpp
     )
