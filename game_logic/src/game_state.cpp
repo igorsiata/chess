@@ -2,11 +2,58 @@
 
 void GameState::loadGameStateFromFEN(const std::string &positionFEN)
 {
-    
     loadPieces(positionFEN);
     loadPlayerToMove(positionFEN);
+    loadAvailableCastles(positionFEN);
+    loadEnPassantSquare(positionFEN);
 }
-void GameState::updateGameState(const Move &move)
+
+void GameState::movePiece(const Move &move)
+{
+    const auto piecesMapIt = m_piecesMap.find(move.startPosition);
+    if (piecesMapIt != m_piecesMap.end())
+    {
+        const auto piecePtr = piecesMapIt->second;
+        piecePtr->move(move.endPosition);
+    }
+    m_gameStateBackup = std::make_shared<GameState>(*this);
+    updatePiecesMap(move);
+    updateAvaliableCastles(move);
+    if (move.moveType == CASTLE_QUEENSIDE){
+        const Position rookStartPosition = move.endPosition + Position(-2, 0);
+        const Position rookEndPosition = move.endPosition + Position(1, 0);
+        const Move rookMove(rookStartPosition, rookEndPosition, EMPTY);
+        movePiece(rookMove);
+        return;
+    }
+    if (move.moveType == CASTLE_KINGSIDE){
+        const Position rookStartPosition = move.endPosition + Position(1, 0);
+        const Position rookEndPosition = move.endPosition + Position(-1, 0);
+        const Move rookMove(rookStartPosition, rookEndPosition, EMPTY);
+        movePiece(rookMove);
+        return;
+    }
+    m_isWhiteToMove = !m_isWhiteToMove;
+}
+
+void GameState::reverseMovePiece(const Move &move)
+{
+    const auto piecesMapIt = m_piecesMap.find(move.endPosition);
+    if (piecesMapIt != m_piecesMap.end())
+    {
+        const auto piecePtr = piecesMapIt->second;
+        piecePtr->move(move.startPosition);
+    }
+    if (m_gameStateBackup){
+        m_piecesMap = m_gameStateBackup->getPiecesMap();
+        m_availableCastles = m_gameStateBackup->getAvaliableCastles();
+        m_enPassantSquare = m_gameStateBackup->getEnPassantSquare();
+        m_isWhiteToMove = m_gameStateBackup->isWhiteToMove();
+    }
+
+}
+
+void GameState::updatePiecesMap(const Move &move)
 {
     // Doesn't change piece internal position, only its square in map
     if (move.moveType == CAPTURE)
@@ -14,20 +61,33 @@ void GameState::updateGameState(const Move &move)
         m_piecesMap.erase(move.endPosition);
     }
     auto pieceToMove = m_piecesMap[move.startPosition];
-    //pieceToMove->move(move.endPosition);
     auto pieceHandler = m_piecesMap.extract(move.startPosition);
     pieceHandler.key() = move.endPosition;
     m_piecesMap.insert(std::move(pieceHandler));
 }
 
-void GameState::movePiece(const Move &move){
-    const auto piecesMapIt = m_piecesMap.find(move.startPosition);
-    if (piecesMapIt != m_piecesMap.end()) {
-        const auto piecePtr = piecesMapIt->second;
-        piecePtr->move(move.endPosition);
+void GameState::updateAvaliableCastles(const Move &move)
+{
+    const int kingRow = m_isWhiteToMove ? 8 : 1;
+    bool isKingMoved = move.startPosition == Position(5, kingRow);
+    bool isKingRookMoved = move.startPosition == Position(8, kingRow);
+    bool isQueenRookMoved = move.startPosition == Position(1, kingRow);
+    if (isKingMoved || isKingRookMoved)
+    {
+        m_availableCastles[m_isWhiteToMove].castleKingside = false;
     }
-    updateGameState(move);
-    
+    if (isKingMoved || isQueenRookMoved)
+    {
+        m_availableCastles[m_isWhiteToMove].castleQueenside = false;
+    }
+
+    const int enemyKingRow = m_isWhiteToMove ? 1 : 8;
+    bool isKingRookCaptured = move.endPosition == Position(8, enemyKingRow);
+    bool isQueenRookCaptured = move.endPosition == Position(1, enemyKingRow);
+    if (isKingRookCaptured)
+        m_availableCastles[!m_isWhiteToMove].castleKingside = false;
+    if (isQueenRookCaptured)
+        m_availableCastles[!m_isWhiteToMove].castleQueenside = false;
 }
 
 void GameState::loadPieces(const std::string &positionFEN)
@@ -107,11 +167,47 @@ void GameState::loadPlayerToMove(const std::string &positionFEN)
 
 void GameState::loadAvailableCastles(const std::string &positionFEN)
 {
-    // TODO
-    char it = 'q';
-    std::map<char, bool> m_CastlesAvailable = {{'K', false},
-                                               {'Q', false},
-                                               {'k', false},
-                                               {'q', false}};
-    m_CastlesAvailable[it] = true;
+    size_t firstSpaceIdx = positionFEN.find(' ');
+    size_t secondSpaceIdx = positionFEN.find(' ', firstSpaceIdx + 1);
+    if (firstSpaceIdx == std::string::npos || secondSpaceIdx == std::string::npos)
+    {
+        return;
+    }
+    for (auto it : positionFEN.substr(secondSpaceIdx + 1))
+    {
+        if (it == ' ')
+            return;
+        if (it == 'K')
+            m_availableCastles[true].castleKingside = true;
+
+        if (it == 'Q')
+            m_availableCastles[true].castleQueenside = true;
+
+        if (it == 'k')
+            m_availableCastles[false].castleKingside = true;
+
+        if (it == 'q')
+            m_availableCastles[false].castleQueenside = true;
+    }
+}
+
+void GameState::loadEnPassantSquare(const std::string &positionFEN)
+{
+    size_t firstSpaceIdx = positionFEN.find(' ');
+    size_t secondSpaceIdx = positionFEN.find(' ', firstSpaceIdx + 1);
+    size_t thirdSpaceIdx = positionFEN.find(' ', secondSpaceIdx + 1);
+    if (firstSpaceIdx == std::string::npos || secondSpaceIdx == std::string::npos || thirdSpaceIdx == std::string::npos)
+    {
+        return;
+    }
+    auto subStr = positionFEN.substr(thirdSpaceIdx + 1);
+    if (subStr[0] == '-')
+    {
+        m_enPassantSquare = Position(0, 0);
+    }
+    else
+    {
+        m_enPassantSquare.x = subStr[0] - 96;
+        m_enPassantSquare.y = 9 - (subStr[1] - 48);
+    }
 }

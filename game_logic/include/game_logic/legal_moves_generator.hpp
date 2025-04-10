@@ -12,12 +12,18 @@ public:
     std::vector<Move> generateLegalMoves(const GameState &gameState);
 
 private:
+    GameState m_gameState;
     std::vector<Move> m_legalMoves;
 
-    std::vector<Move>  generateLegalMoves();
-    void filterIllegallMoves(std::vector<Move> &moves, const GameState &gameState);
-    Position getKingPosition(const GameState &gameState);
-    bool isKingUnderAttack(const Position &kingPosition, const GameState &gameState);
-    bool isCheckAfterMove(const Move &move, const GameState &gameState);
+    void filterIllegallMoves(std::vector<Move> &LegalMovesGenerator);
+    void addCastles();
+    void addCastleQueenside();
+    void addCastleKingside();
+    void addEnPassant();
+
+    Position getKingPosition();
+    bool isKingUnderAttack(const Position &kingPosition, const GameState &gameStat);
+    bool isCheckAfterMove(const Move &move);
+    bool isSquareEmpty(const Position &position);
     FRIEND_TEST(TestLegalMovesGenerator, GetKingPosition);
 };

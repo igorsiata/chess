@@ -1,7 +1,7 @@
 #include "game_logic/game.hpp"
 
-void Game::makeMove(std::shared_ptr<Piece> piece, const Move move){
-    m_gameState.updateGameState(move);
+void Game::makeMove(const Move move){
+    m_gameState.movePiece(move);
 }
 
 void Game::loadPositionFEN(const std::string &positionFEN){

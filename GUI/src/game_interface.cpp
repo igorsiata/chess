@@ -1,7 +1,8 @@
 #include "GUI/game_interface.hpp"
 
-GameInterface::GameInterface(){
-    const std::string startPostitionFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -"; 
+GameInterface::GameInterface()
+{
+    const std::string startPostitionFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -";
     m_game.loadPositionFEN(startPostitionFEN);
 }
 
@@ -16,13 +17,24 @@ std::map<Position, char> GameInterface::getPiecesAsChar() const
     return piecesAsChar;
 }
 
-std::vector<Move> GameInterface::getPiecePossibleMoves(const Position &piecePosition){
+std::vector<Move> GameInterface::getPiecePossibleMoves(const Position &piecePosition)
+{
     std::vector<Move> allMoves = m_game.getPossibleMoves();
     allMoves.erase(
         std::remove_if(allMoves.begin(), allMoves.end(),
-            [piecePosition](const Move &move)
-             { return !(move.startPosition == piecePosition); }),
-             allMoves.end()
-    );
+                       [piecePosition](const Move &move)
+                       { return !(move.startPosition == piecePosition); }),
+        allMoves.end());
     return allMoves;
+}
+
+void GameInterface::movePiece(const Position &startSquare, const Position &endSquare)
+{
+    const auto &possibleMoves = m_game.getPossibleMoves();
+    for (const auto &move : possibleMoves){
+        if (move.startPosition == startSquare and move.endPosition==endSquare){
+            m_game.makeMove(move);
+            return;
+        }
+    }
 }

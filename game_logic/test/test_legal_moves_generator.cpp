@@ -12,7 +12,7 @@ TEST(TestLegalMovesGenerator, GetKingPosition)
     LegalMovesGenerator legalMovesGenerator;
     legalMovesGenerator.generateLegalMoves(gameState);
 
-    EXPECT_EQ(legalMovesGenerator.getKingPosition(gameState), Position(3, 2));
+    EXPECT_EQ(legalMovesGenerator.getKingPosition(), Position(3, 2));
 }
 
 TEST(TestLegalMovesGenerator, KingMoves1)
@@ -25,9 +25,9 @@ TEST(TestLegalMovesGenerator, KingMoves1)
     std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
 
     EXPECT_EQ(legalMoves.size(), 6);
-    EXPECT_FALSE(moveListContainsMove(legalMoves, {{3,2}, {2,2}, EMPTY}));
-    EXPECT_FALSE(moveListContainsMove(legalMoves, {{3,2}, {4,2}, EMPTY}));
-    EXPECT_TRUE(moveListContainsMove(legalMoves, {{3,2}, {3,3}, CAPTURE}));
+    EXPECT_FALSE(moveListContainsMove(legalMoves, {{3, 2}, {2, 2}, EMPTY}));
+    EXPECT_FALSE(moveListContainsMove(legalMoves, {{3, 2}, {4, 2}, EMPTY}));
+    EXPECT_TRUE(moveListContainsMove(legalMoves, {{3, 2}, {3, 3}, CAPTURE}));
 }
 
 TEST(TestLegalMovesGenerator, PieceCapture)
@@ -40,9 +40,9 @@ TEST(TestLegalMovesGenerator, PieceCapture)
     std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
 
     EXPECT_EQ(legalMoves.size(), 3);
-    EXPECT_TRUE(moveListContainsMove(legalMoves, {{6,6}, {6,7}, EMPTY}));
-    EXPECT_TRUE(moveListContainsMove(legalMoves, {{6,6}, {5,7}, EMPTY}));
-    EXPECT_TRUE(moveListContainsMove(legalMoves, {{5,5}, {4,4}, CAPTURE}));
+    EXPECT_TRUE(moveListContainsMove(legalMoves, {{6, 6}, {6, 7}, EMPTY}));
+    EXPECT_TRUE(moveListContainsMove(legalMoves, {{6, 6}, {5, 7}, EMPTY}));
+    EXPECT_TRUE(moveListContainsMove(legalMoves, {{5, 5}, {4, 4}, CAPTURE}));
 }
 
 TEST(TestLegalMovesGenerator, DiscoveredCheck)
@@ -54,7 +54,7 @@ TEST(TestLegalMovesGenerator, DiscoveredCheck)
 
     std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
     EXPECT_EQ(legalMoves.size(), 5);
-    EXPECT_FALSE(moveListContainsMove(legalMoves, {{6,5}, {5,4}, EMPTY}));
+    EXPECT_FALSE(moveListContainsMove(legalMoves, {{6, 5}, {5, 4}, EMPTY}));
 }
 
 TEST(TestLegalMovesGenerator, StartPosition)
@@ -65,5 +65,44 @@ TEST(TestLegalMovesGenerator, StartPosition)
     LegalMovesGenerator legalMovesGenerator;
 
     std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
+    EXPECT_EQ(legalMoves.size(), 20);
+}
+
+TEST(TestLegalMovesGenerator, CastlesAvaliable)
+{
+    GameState gameState;
+    std::string positionFEN = "r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq -";
+    gameState.loadGameStateFromFEN(positionFEN);
+    LegalMovesGenerator legalMovesGenerator;
+
+    std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
+    EXPECT_EQ(legalMoves.size(), 25);
+}
+
+TEST(TestLegalMovesGenerator, CastlesBlocked)
+{
+    GameState gameState;
+    std::string positionFEN = "r3k2r/pppppppp/8/8/2r5/8/PP1PPPPP/R3KB1R w KQkq -";
+    gameState.loadGameStateFromFEN(positionFEN);
+    LegalMovesGenerator legalMovesGenerator;
+
+    std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
+    EXPECT_FALSE(moveListContainsMove(legalMoves, {{5, 8}, {7, 8}, CASTLE_KINGSIDE}));
+    EXPECT_FALSE(moveListContainsMove(legalMoves, {{5, 8}, {3, 8}, CASTLE_QUEENSIDE}));
+    EXPECT_TRUE(moveListContainsMove(legalMoves, {{5, 8}, {4, 8}, EMPTY}));
+    EXPECT_EQ(legalMoves.size(), 19);
+}
+
+TEST(TestLegalMovesGenerator, CastleQueenside)
+{
+    GameState gameState;
+    std::string positionFEN = "r3k2r/pppppppp/8/8/8/8/PP1PPPPP/R3KB1R w KQkq -";
+    gameState.loadGameStateFromFEN(positionFEN);
+    LegalMovesGenerator legalMovesGenerator;
+
+    std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
+    EXPECT_FALSE(moveListContainsMove(legalMoves, {{5, 8}, {7, 8}, CASTLE_KINGSIDE}));
+    EXPECT_TRUE(moveListContainsMove(legalMoves, {{5, 8}, {3, 8}, CASTLE_QUEENSIDE}));
+    EXPECT_TRUE(moveListContainsMove(legalMoves, {{5, 8}, {4, 8}, EMPTY}));
     EXPECT_EQ(legalMoves.size(), 20);
 }

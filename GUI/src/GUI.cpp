@@ -121,7 +121,7 @@ void GUI::draw_possible_moves() {
 
 void GUI::left_mouse_button_clicked() {
     Position newClickedSquare = get_mouse_position();
-    // m_gameInterface.move(m_clickedSquare, newClickedSquare);
+    m_gameInterface.movePiece(m_clickedSquare, newClickedSquare);
 
     m_clickedSquare = newClickedSquare;
     // std::cout<<m_clickedSquare.x<<","<<m_clickedSquare.y<<"\n";

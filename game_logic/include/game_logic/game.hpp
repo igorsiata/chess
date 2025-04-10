@@ -6,7 +6,7 @@
 class Game
 {
 public:
-    void makeMove(std::shared_ptr<Piece> piece, const Move move);
+    void makeMove(const Move move);
     void loadPositionFEN(const std::string &positionFEN);
     std::vector<Move> getPossibleMoves();
     PiecesMap getPiecesMap() const {return m_gameState.getPiecesMap();}

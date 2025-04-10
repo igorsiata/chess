@@ -12,8 +12,9 @@ enum MoveType
     CAPTURE,
     ALLY,
     CHECK,
-    CASTLE,
-    ENPASSAT
+    CASTLE_QUEENSIDE,
+    CASTLE_KINGSIDE,
+    ENPASSANT
 
 };
 
@@ -37,6 +38,13 @@ struct Position
             return y < other.y;
         }
         return x < other.x;
+    }
+
+    Position operator+(const Position& other) const {
+        Position result;
+        result.x = this->x + other.x;
+        result.y = this->y + other.y;
+        return result;
     }
 };
 
