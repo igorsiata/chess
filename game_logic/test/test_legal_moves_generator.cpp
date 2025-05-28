@@ -12,7 +12,7 @@ TEST(TestLegalMovesGenerator, GetKingPosition)
     LegalMovesGenerator legalMovesGenerator;
     legalMovesGenerator.generateLegalMoves(gameState);
 
-    EXPECT_EQ(legalMovesGenerator.getKingPosition(), Position(3, 2));
+    EXPECT_EQ(legalMovesGenerator.getKingPosition(gameState), Position(3, 2));
 }
 
 TEST(TestLegalMovesGenerator, KingMoves1)
@@ -87,6 +87,13 @@ TEST(TestLegalMovesGenerator, CastlesBlocked)
     LegalMovesGenerator legalMovesGenerator;
 
     std::vector<Move> legalMoves = legalMovesGenerator.generateLegalMoves(gameState);
+    for(auto legalmove : legalMoves){
+        if (legalmove.startPosition.y==8 and legalmove.startPosition.x == 5){
+            std::cout<<"Pawn";
+        }else{
+            std::cout<<"Sth else";
+        }
+    }
     EXPECT_FALSE(moveListContainsMove(legalMoves, {{5, 8}, {7, 8}, CASTLE_KINGSIDE}));
     EXPECT_FALSE(moveListContainsMove(legalMoves, {{5, 8}, {3, 8}, CASTLE_QUEENSIDE}));
     EXPECT_TRUE(moveListContainsMove(legalMoves, {{5, 8}, {4, 8}, EMPTY}));

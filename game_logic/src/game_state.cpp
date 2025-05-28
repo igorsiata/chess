@@ -10,12 +10,6 @@ void GameState::loadGameStateFromFEN(const std::string &positionFEN)
 
 void GameState::movePiece(const Move &move)
 {
-    const auto piecesMapIt = m_piecesMap.find(move.startPosition);
-    if (piecesMapIt != m_piecesMap.end())
-    {
-        const auto piecePtr = piecesMapIt->second;
-        piecePtr->move(move.endPosition);
-    }
     m_gameStateBackup = std::make_shared<GameState>(*this);
     updatePiecesMap(move);
     updateAvaliableCastles(move);
@@ -23,14 +17,16 @@ void GameState::movePiece(const Move &move)
         const Position rookStartPosition = move.endPosition + Position(-2, 0);
         const Position rookEndPosition = move.endPosition + Position(1, 0);
         const Move rookMove(rookStartPosition, rookEndPosition, EMPTY);
-        movePiece(rookMove);
+        updatePiecesMap(rookMove);
+        updateAvaliableCastles(rookMove);
         return;
     }
     if (move.moveType == CASTLE_KINGSIDE){
         const Position rookStartPosition = move.endPosition + Position(1, 0);
         const Position rookEndPosition = move.endPosition + Position(-1, 0);
         const Move rookMove(rookStartPosition, rookEndPosition, EMPTY);
-        movePiece(rookMove);
+        updatePiecesMap(rookMove);
+        updateAvaliableCastles(rookMove);
         return;
     }
     m_isWhiteToMove = !m_isWhiteToMove;
@@ -50,7 +46,9 @@ void GameState::reverseMovePiece(const Move &move)
         m_enPassantSquare = m_gameStateBackup->getEnPassantSquare();
         m_isWhiteToMove = m_gameStateBackup->isWhiteToMove();
     }
-
+    if (move.moveType == CAPTURE){
+        m_piecesMap[move.endPosition] = m_lastCapturedPiece;
+    }
 }
 
 void GameState::updatePiecesMap(const Move &move)
@@ -58,12 +56,19 @@ void GameState::updatePiecesMap(const Move &move)
     // Doesn't change piece internal position, only its square in map
     if (move.moveType == CAPTURE)
     {
+        m_lastCapturedPiece = m_piecesMap[move.endPosition];
         m_piecesMap.erase(move.endPosition);
     }
-    auto pieceToMove = m_piecesMap[move.startPosition];
-    auto pieceHandler = m_piecesMap.extract(move.startPosition);
-    pieceHandler.key() = move.endPosition;
-    m_piecesMap.insert(std::move(pieceHandler));
+    auto pieceToMoveItr = m_piecesMap.find(move.startPosition);
+    auto pieceToMove = pieceToMoveItr->second;
+    if (pieceToMoveItr == m_piecesMap.end() || !pieceToMove){
+        const int i = 0;
+        return;
+    }
+    
+    pieceToMove->move(move.endPosition);
+    m_piecesMap.erase(move.startPosition);
+    m_piecesMap[move.endPosition] = pieceToMove;
 }
 
 void GameState::updateAvaliableCastles(const Move &move)

@@ -33,6 +33,7 @@ add_executable(test_game_logic
     test/test_king.cpp
     test/test_game_state.cpp
     test/test_legal_moves_generator.cpp
+    test/test_number_of_positions.cpp
     # test/test_game.cpp
     )
 

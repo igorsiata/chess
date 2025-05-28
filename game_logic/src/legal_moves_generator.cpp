@@ -1,9 +1,8 @@
 #include "game_logic/legal_moves_generator.hpp"
 
-std::vector<Move> LegalMovesGenerator::generateLegalMoves(const GameState &gameState)
+std::vector<Move> LegalMovesGenerator::generateLegalMoves(GameState &gameState)
 {
     m_legalMoves.clear();
-    m_gameState = gameState;
     PiecesMap piecesMap = gameState.getPiecesMap();
     for (const auto &positionAndPiece : piecesMap)
     {
@@ -12,94 +11,94 @@ std::vector<Move> LegalMovesGenerator::generateLegalMoves(const GameState &gameS
             continue;
         piecePtr->findPossibleMoves(piecesMap);
         std::vector<Move> newMoves = piecePtr->getPossibleMoves();
-        filterIllegallMoves(newMoves);
+        filterIllegallMoves(newMoves, gameState);
         m_legalMoves.insert(m_legalMoves.end(), newMoves.begin(), newMoves.end());
     }
-    addCastles();
-    addEnPassant();
+    addCastles(gameState);
+    addEnPassant(gameState);
     return m_legalMoves;
 }
-void LegalMovesGenerator::addCastles()
+void LegalMovesGenerator::addCastles(GameState &gameState)
 {
-    addCastleKingside();
-    addCastleQueenside();
+    addCastleKingside(gameState);
+    addCastleQueenside(gameState);
 }
 
-void LegalMovesGenerator::addCastleQueenside()
+void LegalMovesGenerator::addCastleKingside(GameState &gameState)
 {
-    Position kingPosition = getKingPosition();
-    bool canCastleKingside = m_gameState.getAvaliableCastles()[m_gameState.isWhiteToMove()].castleKingside;
+    Position kingPosition = getKingPosition(gameState);
+    bool canCastleKingside = gameState.getAvaliableCastles()[gameState.isWhiteToMove()].castleKingside;
     if (!canCastleKingside)
         return;
     Position pos1 = kingPosition + Position(1, 0);
     Position pos2 = kingPosition + Position(2, 0);
-    if (!isSquareEmpty(pos1) || !isSquareEmpty(pos2))
+    if (!isSquareEmpty(pos1, gameState) || !isSquareEmpty(pos2, gameState))
         return;
-    if (isCheckAfterMove({kingPosition, kingPosition, EMPTY}) ||
-        isCheckAfterMove({kingPosition, pos1, EMPTY}) ||
-        isCheckAfterMove({kingPosition, pos2, EMPTY}))
+    if (isCheckAfterMove({kingPosition, kingPosition, EMPTY}, gameState) ||
+        isCheckAfterMove({kingPosition, pos1, EMPTY}, gameState) ||
+        isCheckAfterMove({kingPosition, pos2, EMPTY}, gameState))
         return;
     m_legalMoves.emplace_back(kingPosition, pos2, CASTLE_KINGSIDE);
 }
 
-void LegalMovesGenerator::addCastleKingside()
+void LegalMovesGenerator::addCastleQueenside(GameState &gameState)
 {
-    Position kingPosition = getKingPosition();
-    bool canCastleQueenside = m_gameState.getAvaliableCastles()[m_gameState.isWhiteToMove()].castleQueenside;
+    Position kingPosition = getKingPosition(gameState);
+    bool canCastleQueenside = gameState.getAvaliableCastles()[gameState.isWhiteToMove()].castleQueenside;
     if (!canCastleQueenside)
         return;
     Position pos1 = kingPosition + Position(-1, 0);
     Position pos2 = kingPosition + Position(-2, 0);
-    if (!isSquareEmpty(pos1) || !isSquareEmpty(pos2))
+    if (!isSquareEmpty(pos1, gameState) || !isSquareEmpty(pos2, gameState))
         return;
-    if (isCheckAfterMove({kingPosition, kingPosition, EMPTY}) ||
-        isCheckAfterMove({kingPosition, pos1, EMPTY}) ||
-        isCheckAfterMove({kingPosition, pos2, EMPTY}))
+    if (isCheckAfterMove({kingPosition, kingPosition, EMPTY}, gameState) ||
+        isCheckAfterMove({kingPosition, pos1, EMPTY}, gameState) ||
+        isCheckAfterMove({kingPosition, pos2, EMPTY}, gameState))
         return;
     m_legalMoves.emplace_back(kingPosition, pos2, CASTLE_QUEENSIDE);
 }
 
-void LegalMovesGenerator::addEnPassant()
+void LegalMovesGenerator::addEnPassant(GameState &gameState)
 {
-    if (!m_gameState.isEnPassantPossible())
+    if (!gameState.isEnPassantPossible())
         return;
-    const Position &enPassantSquare = m_gameState.getEnPassantSquare();
-    const int pawnRowDiff = m_gameState.isWhiteToMove() ? 1 : -1;
+    const Position &enPassantSquare = gameState.getEnPassantSquare();
+    const int pawnRowDiff = gameState.isWhiteToMove() ? 1 : -1;
     const Position pawnPos1 = enPassantSquare + Position(-1, pawnRowDiff);
     const Position pawnPos2 = enPassantSquare + Position(1, pawnRowDiff);
-    if (!isCheckAfterMove({pawnPos1, enPassantSquare, ENPASSANT}))
+    if (!isCheckAfterMove({pawnPos1, enPassantSquare, ENPASSANT}, gameState))
         m_legalMoves.emplace_back(pawnPos1, enPassantSquare, ENPASSANT);
-    if (!isCheckAfterMove({pawnPos2, enPassantSquare, ENPASSANT}))
+    if (!isCheckAfterMove({pawnPos2, enPassantSquare, ENPASSANT}, gameState))
         m_legalMoves.emplace_back(pawnPos2, enPassantSquare, ENPASSANT);
 }
 
-void LegalMovesGenerator::filterIllegallMoves(std::vector<Move> &moves)
+void LegalMovesGenerator::filterIllegallMoves(std::vector<Move> &moves, GameState &gameState)
 {
     moves.erase(
         std::remove_if(moves.begin(), moves.end(),
-                       [this](const Move &move)
-                       { return isCheckAfterMove(move); }),
+                       [this, &gameState](const Move &move)
+                       { return isCheckAfterMove(move, gameState); }),
         moves.end());
 }
 
-Position LegalMovesGenerator::getKingPosition()
+Position LegalMovesGenerator::getKingPosition(const GameState &gameState)
 {
-    for (const auto &positionAndPiece : m_gameState.getPiecesMap())
+    for (const auto &positionAndPiece : gameState.getPiecesMap())
     {
         const auto &piecePtr = positionAndPiece.second;
-        if (piecePtr->isWhite() == m_gameState.isWhiteToMove() && typeid(*piecePtr) == typeid(King))
+        if (piecePtr->isWhite() == gameState.isWhiteToMove() && typeid(*piecePtr) == typeid(King))
             return positionAndPiece.first;
     }
     return Position(0, 0);
 }
 
-bool LegalMovesGenerator::isKingUnderAttack(const Position &kingPosition, const GameState &gameState)
+bool LegalMovesGenerator::isKingUnderAttack(const Position &kingPosition, GameState &gameState)
 {
     PiecesMap piecesMap = gameState.getPiecesMap();
     for (const auto &positionAndPiece : piecesMap)
     {
         const auto &piecePtr = positionAndPiece.second;
-        if (piecePtr->isWhite() != gameState.isWhiteToMove())
+        if (piecePtr->isWhite() == gameState.isWhiteToMove())
         {
             piecePtr->findPossibleMoves(piecesMap);
             std::vector<Move> possibleMoves = piecePtr->getPossibleMoves();
@@ -114,18 +113,19 @@ bool LegalMovesGenerator::isKingUnderAttack(const Position &kingPosition, const 
     return false;
 }
 
-bool LegalMovesGenerator::isCheckAfterMove(const Move &move)
+bool LegalMovesGenerator::isCheckAfterMove(const Move &move, GameState &gameState)
 {
-    Position kingPosition = getKingPosition();
+    Position kingPosition = getKingPosition(gameState);
     if (move.startPosition == kingPosition)
         kingPosition = move.endPosition;
-    GameState dummyGameState = m_gameState;
-    dummyGameState.updatePiecesMap(move);
-    return isKingUnderAttack(kingPosition, dummyGameState);
+    gameState.movePiece(move);
+    bool isCheck = isKingUnderAttack(kingPosition, gameState);
+    gameState.reverseMovePiece(move);
+    return isCheck;
 }
 
-bool LegalMovesGenerator::isSquareEmpty(const Position &position)
+bool LegalMovesGenerator::isSquareEmpty(const Position &position, const GameState &gameState)
 {
-    const PiecesMap &piecesMap = m_gameState.getPiecesMap();
+    const PiecesMap &piecesMap = gameState.getPiecesMap();
     return piecesMap.find(position) == piecesMap.end();
 }

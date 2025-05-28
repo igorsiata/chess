@@ -2,7 +2,7 @@
 
 GameInterface::GameInterface()
 {
-    const std::string startPostitionFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -";
+    const std::string startPostitionFEN = "r3k2r/pppppppp/8/8/2r5/8/PP1PPPPP/R3KB1R w KQkq -";
     m_game.loadPositionFEN(startPostitionFEN);
 }
 

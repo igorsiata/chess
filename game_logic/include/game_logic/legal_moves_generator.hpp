@@ -9,21 +9,20 @@
 class LegalMovesGenerator
 {
 public:
-    std::vector<Move> generateLegalMoves(const GameState &gameState);
+    std::vector<Move> generateLegalMoves(GameState &gameState);
 
 private:
-    GameState m_gameState;
     std::vector<Move> m_legalMoves;
 
-    void filterIllegallMoves(std::vector<Move> &LegalMovesGenerator);
-    void addCastles();
-    void addCastleQueenside();
-    void addCastleKingside();
-    void addEnPassant();
+    void filterIllegallMoves(std::vector<Move> &LegalMovesGenerator, GameState &gameState);
+    void addCastles(GameState &gameState);
+    void addCastleQueenside(GameState &gameState);
+    void addCastleKingside(GameState &gameState);
+    void addEnPassant(GameState &gameState);
 
-    Position getKingPosition();
-    bool isKingUnderAttack(const Position &kingPosition, const GameState &gameStat);
-    bool isCheckAfterMove(const Move &move);
-    bool isSquareEmpty(const Position &position);
+    Position getKingPosition(const GameState &gameState);
+    bool isKingUnderAttack(const Position &kingPosition, GameState &gameState);
+    bool isCheckAfterMove(const Move &move, GameState &gameState);
+    bool isSquareEmpty(const Position &position, const GameState &gameState);
     FRIEND_TEST(TestLegalMovesGenerator, GetKingPosition);
 };
