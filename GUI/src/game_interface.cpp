@@ -1,40 +1,55 @@
 #include "GUI/game_interface.hpp"
 
-GameInterface::GameInterface()
-{
-    const std::string startPostitionFEN = "r3k2r/pppppppp/8/8/2r5/8/PP1PPPPP/R3KB1R w KQkq -";
-    m_game.loadPositionFEN(startPostitionFEN);
+GameInterface::GameInterface() {
+  const std::string startPostitionFEN = "8/PPPPPPPP/8/7k/K7/8/pppppppp/8 w - - 0 1";
+  m_boardManager.loadBoardFromFEN(startPostitionFEN);
+
+  m_pieceToChar =
+      {
+          {PieceType::WHITE_PAWN, 'P'},
+          {PieceType::WHITE_KINGHT, 'N'},
+          {PieceType::WHITE_BISHOP, 'B'},
+          {PieceType::WHITE_ROOK, 'R'},
+          {PieceType::WHITE_QUEEN, 'Q'},
+          {PieceType::WHITE_KING, 'K'},
+          {PieceType::BLACK_PAWN, 'p'},
+          {PieceType::BLACK_KINGHT, 'n'},
+          {PieceType::BLACK_BISHOP, 'b'},
+          {PieceType::BLACK_ROOK, 'r'},
+          {PieceType::BLACK_QUEEN, 'q'},
+          {PieceType::BLACK_KING, 'k'},
+      };
+
+  m_possibleMoves = m_boardManager.generateAllMoves();
 }
 
-std::map<Position, char> GameInterface::getPiecesAsChar() const
-{
-    std::map<Position, char> piecesAsChar;
-    PiecesMap piecesMap = m_game.getPiecesMap();
-    for (auto &pair : piecesMap)
-    {
-        piecesAsChar[pair.first] = pair.second->getCharRepresentation();
+std::map<Position64, char> GameInterface::getPiecesAsChar() {
+  std::map<Position64, char> piecesAsChar;
+  const PieceType* pieces = m_boardManager.getPieces();
+  for (uint8_t pos120 = 0; pos120 < 120; pos120++) {
+    if (pieces[pos120] != PieceType::EMPTY &&
+        pieces[pos120] != PieceType::OFF_BOARD) {
+      Position64 pos64 = BoardHelper::pos120to64(pos120);
+      PieceType piece = pieces[pos120];
+      piecesAsChar[pos64] = m_pieceToChar[piece];
     }
-    return piecesAsChar;
+  }
+  return piecesAsChar;
 }
 
-std::vector<Move> GameInterface::getPiecePossibleMoves(const Position &piecePosition)
-{
-    std::vector<Move> allMoves = m_game.getPossibleMoves();
-    allMoves.erase(
-        std::remove_if(allMoves.begin(), allMoves.end(),
-                       [piecePosition](const Move &move)
-                       { return !(move.startPosition == piecePosition); }),
-        allMoves.end());
-    return allMoves;
+void GameInterface::movePiece(const Move &move) {
+  m_boardManager.makeMove(move);
+  m_possibleMoves = m_boardManager.generateAllMoves();
+  GameStatus gameStatus = m_boardManager.getGameStatus();
+  if (gameStatus == DRAW)
+    std::cout << "DRAW\n";
+  if (gameStatus == WHITE_WIN)
+    std::cout << "WHITE WON\n";
+  if (gameStatus == BLACK_WIN)
+    std::cout << "BLACK WON\n";
 }
 
-void GameInterface::movePiece(const Position &startSquare, const Position &endSquare)
-{
-    const auto &possibleMoves = m_game.getPossibleMoves();
-    for (const auto &move : possibleMoves){
-        if (move.startPosition == startSquare and move.endPosition==endSquare){
-            m_game.makeMove(move);
-            return;
-        }
-    }
+void GameInterface::unmakeMove() {
+  m_boardManager.unmakePreviousMove();
+  m_possibleMoves = m_boardManager.generateAllMoves();
 }

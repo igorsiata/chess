@@ -2,7 +2,6 @@
 
 
 int main() {
-    GameInterface gameInterface;
-    GUI gui(gameInterface, 100);
+    GUI gui;
     return 0;
 }

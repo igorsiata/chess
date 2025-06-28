@@ -6,17 +6,22 @@ project (game_logic)
 include_directories(include)
 
 add_library(${PROJECT_NAME}
-    game_logic
+    src/position_hasher.cpp
+    src/fen_parser.cpp
+    src/move_generator.cpp
+    src/board_manager.cpp
 )
 add_library(sub::game_logic ALIAS ${PROJECT_NAME})
 
 target_include_directories( ${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
-
+target_compile_options(game_logic PRIVATE -O3 -march=native)
 ####### TESTS ############
 add_executable(test_game_logic 
-
+    test/main_gtest.cpp
+    test/main_test.cpp
+    test/perft_test.cpp
     )
 
 target_include_directories(test_game_logic PUBLIC
