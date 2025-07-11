@@ -37,7 +37,7 @@ void FENParser::loadPieces(const std::string &positionFEN, Board *board) {
       PieceType piece = pieceMap[it];
       board->pieces[currentPosition120] = piece;
       
-      board->addPieceToList(piece, currentPosition120);
+      board->piecesList.addPiece(piece, currentPosition120);
       if (it == 'K') {
         board->kingsPositions[0] = currentPosition120;
       }

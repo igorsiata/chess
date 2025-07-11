@@ -19,12 +19,13 @@ public:
 
 private:
   MoveList m_moveList;
-
   const int KnightDir[8] = {-8, -19, -21, -12, 8, 19, 21, 12};
   const int BishopDir[4] = {-9, -11, 9, 11};
   const int RookDir[4] = {-10, -1, 1, 10};
   const int KingQueenDir[8] = {-9, -11, 9, 11, -10, -1, 1, 10};
   inline int colorOffset() { return m_board.sideToMove == WHITE ? 0 : 6; }
+
+  bool isPieceEnemy(Position120 piecePos);
   void addMove(Move move);
   void GeneratePawnsMoves();
   void GenerateAllSliderMoves();

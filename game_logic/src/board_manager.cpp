@@ -21,11 +21,7 @@ void BoardManager::resetBoard() {
   for (int idx = 0; idx < 120; idx++) {
     m_board.pieces[idx] = PieceType::OFF_BOARD;
   }
-  for (int idx = 0; idx < 12; idx++) {
-    for (int idx2 = 0; idx2 < 10; idx2++) {
-      m_board.piecesList[idx][idx2] = NO_SQUARE;
-    }
-  }
+  m_board.piecesList.resetPiecesList();
 
   for (int idx = 0; idx < 64; idx++) {
     uint8_t idx120 = BoardHelper::pos64to120(idx);
@@ -84,19 +80,14 @@ void BoardManager::unmakePreviousMove() {
   // promotion
   if (MoveHelper::isMovePromotion(move)) {
     PieceType promotedPiece = m_board.pieces[endPos];
-    m_board.removePieceFromList(promotedPiece, endPos);
+    m_board.piecesList.removePiece(promotedPiece, endPos);
     movedPiece = m_board.sideToMove == WHITE ? WHITE_PAWN : BLACK_PAWN;
-    m_board.addPieceToList(movedPiece, startPos);
+    m_board.piecesList.addPiece(movedPiece, endPos);
   }
 
   // unmake move
-
   m_board.pieces[startPos] = movedPiece;
-  auto it = std::find(m_board.piecesList[movedPiece].begin(),
-                      m_board.piecesList[movedPiece].end(),
-                      MoveHelper::getEndPos(move));
-  if (it != m_board.piecesList[movedPiece].end())
-    *it = startPos;
+  m_board.piecesList.changePiecePos(movedPiece, endPos, startPos);
 
   // capture
   int capturedPieceSquare = MoveHelper::getEndPos(move);
@@ -106,7 +97,7 @@ void BoardManager::unmakePreviousMove() {
   }
   m_board.pieces[capturedPieceSquare] = PieceType(capturedPiece);
   if (capturedPiece != EMPTY) {
-    m_board.addPieceToList(capturedPiece, capturedPieceSquare);
+    m_board.piecesList.addPiece(capturedPiece, capturedPieceSquare);
   }
 
   // castle
@@ -165,11 +156,7 @@ void BoardManager::movePiece(const Move &move) {
   int startPos = MoveHelper::getStartPos(move);
   int endPos = MoveHelper::getEndPos(move);
   PieceType movedPiece = m_board.pieces[startPos];
-  auto it = std::find(m_board.piecesList[movedPiece].begin(),
-                      m_board.piecesList[movedPiece].end(),
-                      startPos);
-  if (it != m_board.piecesList[movedPiece].end())
-    *it = endPos;
+  m_board.piecesList.changePiecePos(movedPiece, startPos, endPos);
   // King move
   if (startPos == m_board.kingsPositions[m_board.sideToMove])
     m_board.kingsPositions[m_board.sideToMove] = endPos;
@@ -208,7 +195,7 @@ void BoardManager::capturePiece(const Move &move) {
   }
 
   if (capturedPiece != EMPTY) {
-    m_board.removePieceFromList(capturedPiece, capturedPieceSquare);
+    m_board.piecesList.removePiece(capturedPiece, capturedPieceSquare);
   }
 }
 
@@ -219,8 +206,8 @@ void BoardManager::promotePawn(const Move &move) {
   int endPos = MoveHelper::getEndPos(move);
   PieceType movedPiece = PieceType(m_board.pieces[startPos]);
   PieceType promotedPiece = PieceType(MoveHelper::getPromotedPiece(move));
-  m_board.removePieceFromList(movedPiece, startPos);
-  m_board.addPieceToList(promotedPiece, endPos);
+  m_board.piecesList.removePiece(movedPiece, startPos);
+  m_board.piecesList.addPiece(promotedPiece, endPos);
   m_board.pieces[endPos] = promotedPiece;
   m_board.pieces[startPos] = PieceType::EMPTY;
 }
@@ -247,7 +234,7 @@ GameStatus BoardManager::updateGameStatus(bool noMovesAvalible) {
 
 bool BoardManager::isBoardCorrect() {
   for (int pieceIdx = 0; pieceIdx < 12; pieceIdx++) {
-    for (const int pos : m_board.piecesList[pieceIdx]) {
+    for (const int pos : m_board.piecesList.getPiecesList(PieceType(pieceIdx))) {
       if (pos == NO_SQUARE)
         continue;
       if (m_board.pieces[pos] != pieceIdx)

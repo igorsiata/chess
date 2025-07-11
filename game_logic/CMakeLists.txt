@@ -16,7 +16,7 @@ add_library(sub::game_logic ALIAS ${PROJECT_NAME})
 target_include_directories( ${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
-target_compile_options(game_logic PRIVATE -O3 -march=native)
+target_compile_options(game_logic PRIVATE -O0 -g -Wall -Wextra -Wpedantic -Werror)
 ####### TESTS ############
 add_executable(test_game_logic 
     test/main_gtest.cpp

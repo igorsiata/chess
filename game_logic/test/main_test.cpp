@@ -87,6 +87,7 @@ TEST(TestMain, TestCastles) {
 TEST(TestMain, TestCastles2) {
   BoardManager boardManager;
   boardManager.loadBoardFromFEN("3rk2r/8/8/8/8/8/8/R3Kn1R w KQkq -");
+  EXPECT_TRUE(boardManager.isBoardCorrect());
   MoveList moveList = boardManager.generateAllMoves();
   EXPECT_EQ(moveList.count, 22);
 }
@@ -95,6 +96,7 @@ TEST(TestMain, TestPawnPromotion) {
 
   BoardManager boardManager;
   boardManager.loadBoardFromFEN("k7/4P3/8/8/8/8/4p3/K7 w - -");
+  EXPECT_TRUE(boardManager.isBoardCorrect());
   MoveList moveList = boardManager.generateAllMoves();
   // printMoves(moves);
   boardManager.makeMove(moveList.moves[0]);

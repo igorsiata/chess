@@ -61,6 +61,14 @@ const MoveList MoveGenerator::generateAllMoves() {
   return m_moveList;
 }
 
+bool MoveGenerator::isPieceEnemy(Position120 piecePos) {
+    PieceType otherPiece = m_board.pieces[piecePos];
+    if (m_board.sideToMove == Color::WHITE)
+      return otherPiece > 5 && otherPiece < 12;
+    else
+      return otherPiece < 6;
+  }
+
 void MoveGenerator::addMove(Move move) {
   if (isCheckAfterMove(move))
     return;
@@ -69,42 +77,40 @@ void MoveGenerator::addMove(Move move) {
 }
 
 void MoveGenerator::GeneratePawnsMoves() {
-  int offset = colorOffset();
-  int pawnsIdx = 0 + offset;
-  int pawnForward = m_board.sideToMove == Color::WHITE ? -10 : 10;
-  std::array<int, 2> pawnAttacks = m_board.sideToMove == Color::WHITE
+  PieceType pawnsIdx = PieceType(PieceType::WHITE_PAWN + colorOffset());
+  int pawnforward = m_board.sideToMove == Color::WHITE ? -10 : 10;
+  std::array<int, 2> pawnattacks = m_board.sideToMove == Color::WHITE
                                        ? std::array{-11, -9}
                                        : std::array{11, 9};
 
-  for (int pieceIdx = 0; pieceIdx < 10; pieceIdx++) {
-    if (m_board.piecesList[pawnsIdx][pieceIdx] == NO_SQUARE)
+  for (int piecePos : m_board.piecesList.getPiecesList(pawnsIdx)) {
+    if (piecePos == NO_SQUARE)
       continue;
-    int piecePos = m_board.piecesList[pawnsIdx][pieceIdx];
-    // Move 2 squares
+    // move 2 squares
     if (isPawnOnStartSq(piecePos, m_board.sideToMove) &&
-        m_board.pieces[piecePos + pawnForward] == EMPTY &&
-        m_board.pieces[piecePos + 2 * pawnForward] == EMPTY) {
+        m_board.pieces[piecePos + pawnforward] == EMPTY &&
+        m_board.pieces[piecePos + 2 * pawnforward] == EMPTY) {
       Move move = MoveHelper::createMove(piecePos,
-                                         piecePos + 2 * pawnForward,
+                                         piecePos + 2 * pawnforward,
                                          PieceType::EMPTY,
                                          MOVE_FLAG_NO_PROMOTION,
                                          MOVE_FLAG_PAWNSTART);
       addMove(move);
     }
 
-    // Move one square
-    if (m_board.pieces[piecePos + pawnForward] == EMPTY) {
+    // move one square
+    if (m_board.pieces[piecePos + pawnforward] == EMPTY) {
       Move move = MoveHelper::createMove(piecePos,
-                                         piecePos + pawnForward,
+                                         piecePos + pawnforward,
                                          PieceType::EMPTY,
                                          MOVE_FLAG_NO_PROMOTION,
                                          MOVE_FLAG_REGULAR_MOVE);
       promoteIfPossible(move);
     }
 
-    // Captures
-    for (int pawnAttack : pawnAttacks) {
-      if (m_board.isPieceEnemy(piecePos + pawnAttack)) {
+    // captures
+    for (int pawnAttack : pawnattacks) {
+      if (isPieceEnemy(piecePos + pawnAttack)) {
 
         Move move = MoveHelper::createMove(piecePos,
                                            piecePos + pawnAttack,
@@ -114,12 +120,12 @@ void MoveGenerator::GeneratePawnsMoves() {
         promoteIfPossible(move);
       }
 
-      // EN Passant
+      // en passant
       if (m_board.enPassantSquare != NO_SQUARE &&
           (piecePos + pawnAttack == m_board.enPassantSquare)) {
         Move move = MoveHelper::createMove(piecePos,
                                            piecePos + pawnAttack,
-                                           m_board.pieces[piecePos + pawnAttack - pawnForward],
+                                           m_board.pieces[piecePos + pawnAttack - pawnforward],
                                            MOVE_FLAG_NO_PROMOTION,
                                            MOVE_FLAG_ENPASSANT);
         addMove(move);
@@ -158,25 +164,25 @@ bool MoveGenerator::isPawnOnStartSq(Position120 piecePos, Color color) {
 void MoveGenerator::GenerateAllSliderMoves(
 
 ) {
-  const int bishopIdx = m_board.sideToMove == WHITE ? 2 : 8;
-  const int rookIdx = m_board.sideToMove == WHITE ? 3 : 9;
-  const int queenIdx = m_board.sideToMove == WHITE ? 4 : 10;
+  const PieceType bishopIdx = m_board.sideToMove == WHITE ? WHITE_BISHOP : BLACK_BISHOP;
+  const PieceType rookIdx = m_board.sideToMove == WHITE ? WHITE_ROOK : BLACK_ROOK;
+  const PieceType queenIdx = m_board.sideToMove == WHITE ? WHITE_QUEEN : BLACK_QUEEN;
   int idx = 0;
-  for (const auto piecePos : m_board.piecesList[bishopIdx]) {
+  for (const auto piecePos : m_board.piecesList.getPiecesList(bishopIdx)) {
     if (piecePos == NO_SQUARE)
       continue;
     GenerateSliderMoves(BishopDir, 4, piecePos);
     idx++;
   }
   idx = 0;
-  for (const auto piecePos : m_board.piecesList[rookIdx]) {
+  for (const auto piecePos : m_board.piecesList.getPiecesList(rookIdx)) {
     if (piecePos == NO_SQUARE)
       continue;
     GenerateSliderMoves(RookDir, 4, piecePos);
     idx++;
   }
   idx = 0;
-  for (const auto piecePos : m_board.piecesList[queenIdx]) {
+  for (const auto piecePos : m_board.piecesList.getPiecesList(queenIdx)) {
     if (piecePos == NO_SQUARE)
       continue;
     GenerateSliderMoves(KingQueenDir, 8, piecePos);
@@ -192,7 +198,7 @@ void MoveGenerator::GenerateSliderMoves(
   for (int dirIdx = 0; dirIdx < slidingDirSize; dirIdx++) {
     for (int i = 1; i < 9; i++) {
       Position120 endSquare = startSquare + i * slidingDir[dirIdx];
-      if (m_board.isPieceEnemy(endSquare)) {
+      if (isPieceEnemy(endSquare)) {
         Move move = MoveHelper::createMove(
             startSquare,
             endSquare,
@@ -200,9 +206,9 @@ void MoveGenerator::GenerateSliderMoves(
             MOVE_FLAG_NO_PROMOTION,
             MOVE_FLAG_REGULAR_MOVE);
         addMove(move);
-        break;
+        
       }
-      if (m_board.isPieceAlly(endSquare) || m_board.pieces[endSquare] == OFF_BOARD) {
+      if (m_board.pieces[endSquare] != EMPTY) {
         break;
       }
       Move move = MoveHelper::createMove(
@@ -217,14 +223,13 @@ void MoveGenerator::GenerateSliderMoves(
 }
 
 void MoveGenerator::GenerateKnightMoves() {
-  int knightIdx = m_board.sideToMove == WHITE ? 1 : 7;
-  for (int pieceIdx = 0; pieceIdx < 10; pieceIdx++) {
-    if (m_board.piecesList[knightIdx][pieceIdx] == NO_SQUARE)
+  PieceType knightIdx = m_board.sideToMove == WHITE ? WHITE_KINGHT : BLACK_KINGHT;
+  for (int piecePos : m_board.piecesList.getPiecesList(knightIdx)) {
+    if (piecePos == NO_SQUARE)
       continue;
-    int piecePos = m_board.piecesList[knightIdx][pieceIdx];
     for (const int move : KnightDir) {
       if (m_board.pieces[piecePos + move] == EMPTY ||
-          m_board.isPieceEnemy(piecePos + move)) {
+          isPieceEnemy(piecePos + move)) {
         Move moveToAdd = MoveHelper::createMove(
             piecePos,
             piecePos + move,
@@ -241,7 +246,7 @@ void MoveGenerator::GenerateKingMoves() {
   Position120 kingPos = m_board.kingsPositions[m_board.sideToMove];
   for (const int move : KingQueenDir) {
     if (m_board.pieces[kingPos + move] == EMPTY ||
-        m_board.isPieceEnemy(kingPos + move)) {
+        isPieceEnemy(kingPos + move)) {
       Move moveToAdd = MoveHelper::createMove(
           kingPos,
           kingPos + move,
