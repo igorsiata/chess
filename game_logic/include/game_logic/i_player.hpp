@@ -1,25 +1,31 @@
 #pragma once
 
 #include <memory>
+#include <thread>
 #include "game_logic/board_manager.hpp"
 
 enum PlayerStatus { WAITING,
                     MOVING };
 
-class Player {
+class IPlayer {
 public:
-  void makeMove(BoardManager& boardManager) {
+  bool makeMove(BoardManager& boardManager) {
     m_playerStatus = PlayerStatus::MOVING;
-    boardManager.makeMove(this->chooseMove(boardManager.getBoard()));
-    m_playerStatus = PlayerStatus::WAITING;
+    Move move = this->chooseMove(boardManager);
+    if (move != 0){
+      boardManager.makeMove(move);
+      m_playerStatus = PlayerStatus::WAITING;
+      return true;
+    }
+    return false;
   }
   PlayerStatus getPlayerStatus(){return m_playerStatus;}
-  virtual ~Player() = default;
+  virtual ~IPlayer() = default;
 protected:
-  virtual Move chooseMove(Board &board) = 0;
+  virtual Move chooseMove(BoardManager &boardManager) = 0;
 
 private:
-  PlayerStatus m_playerStatus;
+  PlayerStatus m_playerStatus = WAITING;
 };
 
 // class GUIPlayer : public Player {

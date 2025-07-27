@@ -16,9 +16,9 @@ public:
   MoveGenerator(Board &board, MoveList &moveList);
   void generateAllMoves();
   bool isSquareAttackedByEnemy(const Position120 square);
-  Board &m_board;
 
 private:
+  Board &m_board;
   MoveList &m_moveList;
   bool isKingInCheck;
   std::set<Position120> pinnedPieces;

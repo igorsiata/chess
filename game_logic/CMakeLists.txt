@@ -11,6 +11,7 @@ add_library(${PROJECT_NAME}
     src/move_generator.cpp
     src/board_manager.cpp
     src/move_maker.cpp
+    src/game.cpp
 )
 add_library(sub::game_logic ALIAS ${PROJECT_NAME})
 

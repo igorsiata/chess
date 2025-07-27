@@ -10,7 +10,7 @@ FetchContent_MakeAvailable(SFML)
 include_directories(include)
 
 set(SOURCE_FILES
-    src/game_interface.cpp
+    src/gui_player.cpp
     src/GUI.cpp)
 
 
