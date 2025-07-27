@@ -13,22 +13,19 @@ PositionHasher::PositionHasher() {
     m_castleKeys[idx1] = rand64();
   }
 }
-PosHash PositionHasher::hashPosition(const Board &board) {
-  PosHash hash = 0;
-  for (int idx = 0; idx < 120; idx++) {
-    PieceType pieceType = board.pieces[idx];
+void PositionHasher::hashPosition(PosHash &posHash, const Board &board) const {
+  posHash = 0;
+  for (int piecePos = 0; piecePos < 120; piecePos++) {
+    PieceType pieceType = board.pieces[piecePos];
     if (pieceType != EMPTY && pieceType != OFF_BOARD) {
-      hash ^= m_pieceKeys[pieceType][idx];
+      hashPiece(posHash, pieceType, piecePos);
     }
   }
-  if (board.sideToMove == WHITE) {
-    hash ^= m_sideKey;
-  }
+  if (board.sideToMove == WHITE)
+    hashSide(posHash);
 
-  if (board.enPassantSquare != NO_SQUARE) {
-    hash ^= m_pieceKeys[PieceType::EMPTY][board.enPassantSquare];
-  }
+  if (board.enPassantSquare != NO_SQUARE)
+    hashEnPassSqr(posHash, board.enPassantSquare);
 
-  hash ^= m_castleKeys[board.castleRights];
-  return hash;
+  hashCastle(posHash, board.castleRights);
 }

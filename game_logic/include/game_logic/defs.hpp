@@ -4,16 +4,19 @@
 
 #define MAX_GAME_MOVES 2048
 #define NO_SQUARE 99
+#define CASTLE_WHITE_KINGSIDE 1
+#define CASTLE_WHITE_QUEENSIDE 2
+#define CASTLE_BLACK_KINGSIDE 4
+#define CASTLE_BLACK_QUEENSIDE 8
 
 typedef uint64_t Bitboard;
 typedef uint8_t Position64;
 typedef uint64_t PosHash;
 typedef uint8_t Position120;
 typedef int Move;
+typedef int CastleRights;
 
-enum CastleRights{
-    WHITE_KINGSIDE=1, WHITE_QUEENSIDE=2, BLACK_KINGSIDE=4, BLACK_QUEENSIDE=8
-};
+
 
 enum PieceType {
   WHITE_PAWN,

@@ -3,7 +3,7 @@ project(Chess LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 add_subdirectory(game_logic)
-add_subdirectory(GUI)
+# add_subdirectory(GUI)
 
 # add_executable(Chess ${SOURCE_FILES}
 #         main.cpp)

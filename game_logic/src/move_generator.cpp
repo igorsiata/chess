@@ -1,6 +1,6 @@
 #include "game_logic/move_generator.hpp"
 
-MoveGenerator::MoveGenerator(Board &board) : m_board(board) {
+MoveGenerator::MoveGenerator(Board &board, MoveList &moveList) : m_board(board), m_moveList(moveList) {
 }
 
 bool MoveGenerator::isSquareAttackedByEnemy(
@@ -51,27 +51,69 @@ bool MoveGenerator::isSquareAttackedByEnemy(
   return false;
 }
 
-const MoveList MoveGenerator::generateAllMoves() {
+void MoveGenerator::getPinnedPieces() {
+  pinnedPieces.clear();
+  const Position120 kingSquare = m_board.kingsPositions[m_board.sideToMove];
+  const int offset = m_board.sideToMove == WHITE ? 6 : 0;
+  const int allyPieces = m_board.sideToMove == WHITE ? 6 : 12;
+  // Slider m_board.pieces
+  for (const int move : RookDir) {
+    int i = 1;
+    Position120 pinnedPiece = EMPTY;
+    while (m_board.pieces[kingSquare + move * i] == PieceType::EMPTY)
+      i++;
+    if (m_board.pieces[kingSquare + move * i] < allyPieces)
+      pinnedPiece = kingSquare + move * i;
+    i++;
+    while (m_board.pieces[kingSquare + move * i] == PieceType::EMPTY)
+      i++;
+    if (m_board.pieces[kingSquare + move * i] == PieceType::WHITE_ROOK + offset ||
+        m_board.pieces[kingSquare + move * i] == PieceType::WHITE_QUEEN + offset)
+      pinnedPieces.insert(pinnedPiece);
+  }
+  for (const int move : BishopDir) {
+    int i = 1;
+    Position120 pinnedPiece = EMPTY;
+    while (m_board.pieces[kingSquare + move * i] == PieceType::EMPTY)
+      i++;
+    if (m_board.pieces[kingSquare + move * i] < allyPieces)
+      pinnedPiece = kingSquare + move * i;
+    i++;
+    while (m_board.pieces[kingSquare + move * i] == PieceType::EMPTY)
+      i++;
+    if (m_board.pieces[kingSquare + move * i] == PieceType::WHITE_BISHOP + offset ||
+        m_board.pieces[kingSquare + move * i] == PieceType::WHITE_QUEEN + offset)
+      pinnedPieces.insert(pinnedPiece);
+  }
+}
+
+void MoveGenerator::generateAllMoves() {
   m_moveList.count = 0;
+  isKingInCheck = isSquareAttackedByEnemy(m_board.kingsPositions[m_board.sideToMove]);
+  getPinnedPieces();
   GeneratePawnsMoves();
   GenerateAllSliderMoves();
   GenerateKnightMoves();
   GenerateKingMoves();
   addCastles();
-  return m_moveList;
 }
 
 bool MoveGenerator::isPieceEnemy(Position120 piecePos) {
-    PieceType otherPiece = m_board.pieces[piecePos];
-    if (m_board.sideToMove == Color::WHITE)
-      return otherPiece > 5 && otherPiece < 12;
-    else
-      return otherPiece < 6;
-  }
+  PieceType otherPiece = m_board.pieces[piecePos];
+  if (m_board.sideToMove == Color::WHITE)
+    return otherPiece > 5 && otherPiece < 12;
+  else
+    return otherPiece < 6;
+}
 
 void MoveGenerator::addMove(Move move) {
-  if (isCheckAfterMove(move))
-    return;
+  // if (pinnedPieces.find(MoveHelper::getStartPos(move)) != pinnedPieces.end() ||
+  //     MoveHelper::isMoveEnPassant(move) ||
+  //     isKingInCheck ||
+  //     MoveHelper::getStartPos(move) == m_board.kingsPositions[m_board.sideToMove])
+    if (isCheckAfterMove(move))
+      return;
+
   m_moveList.moves[m_moveList.count] = move;
   m_moveList.count++;
 }
@@ -161,9 +203,7 @@ bool MoveGenerator::isPawnOnStartSq(Position120 piecePos, Color color) {
          (color == BLACK && piecePos > 30 && piecePos < 39);
 }
 
-void MoveGenerator::GenerateAllSliderMoves(
-
-) {
+void MoveGenerator::GenerateAllSliderMoves() {
   const PieceType bishopIdx = m_board.sideToMove == WHITE ? WHITE_BISHOP : BLACK_BISHOP;
   const PieceType rookIdx = m_board.sideToMove == WHITE ? WHITE_ROOK : BLACK_ROOK;
   const PieceType queenIdx = m_board.sideToMove == WHITE ? WHITE_QUEEN : BLACK_QUEEN;
@@ -206,7 +246,6 @@ void MoveGenerator::GenerateSliderMoves(
             MOVE_FLAG_NO_PROMOTION,
             MOVE_FLAG_REGULAR_MOVE);
         addMove(move);
-        
       }
       if (m_board.pieces[endSquare] != EMPTY) {
         break;
@@ -245,8 +284,9 @@ void MoveGenerator::GenerateKnightMoves() {
 void MoveGenerator::GenerateKingMoves() {
   Position120 kingPos = m_board.kingsPositions[m_board.sideToMove];
   for (const int move : KingQueenDir) {
-    if (m_board.pieces[kingPos + move] == EMPTY ||
-        isPieceEnemy(kingPos + move)) {
+    const bool isValidSquare = m_board.pieces[kingPos + move] == EMPTY ||
+                               isPieceEnemy(kingPos + move);
+    if (isValidSquare && !isSquareAttackedByEnemy(kingPos + move)) {
       Move moveToAdd = MoveHelper::createMove(
           kingPos,
           kingPos + move,
@@ -259,36 +299,33 @@ void MoveGenerator::GenerateKingMoves() {
 }
 
 bool MoveGenerator::isCheckAfterMove(Move move) {
-  const auto piecesCopy = m_board.pieces;
-  PieceType pieceToMove = m_board.pieces[MoveHelper::getStartPos(move)];
-  m_board.pieces[MoveHelper::getStartPos(move)] = PieceType::EMPTY;
-  m_board.pieces[MoveHelper::getEndPos(move)] = pieceToMove;
+  const Position120 startPos = MoveHelper::getStartPos(move);
+  const Position120 endPos = MoveHelper::getEndPos(move);
+  const PieceType pieceToMove = m_board.pieces[startPos];
+  const int enPassAdd = m_board.sideToMove == WHITE ? 10 : -10;
+  m_board.pieces[startPos] = PieceType::EMPTY;
+  m_board.pieces[endPos] = pieceToMove;
   if (MoveHelper::isMoveEnPassant(move)) {
-    int capturedPieceSquare = MoveHelper::getEndPos(move);
-    capturedPieceSquare += m_board.sideToMove == WHITE ? 10 : -10;
+    int capturedPieceSquare = endPos + enPassAdd;
     m_board.pieces[capturedPieceSquare] = PieceType::EMPTY;
   }
   if (pieceToMove == WHITE_KING || pieceToMove == BLACK_KING) {
-    m_board.kingsPositions[m_board.sideToMove] = MoveHelper::getEndPos(move);
+    m_board.kingsPositions[m_board.sideToMove] = endPos;
   }
   bool checkAfterMove = isSquareAttackedByEnemy(m_board.kingsPositions[m_board.sideToMove]);
 
   if (MoveHelper::isMoveEnPassant(move)) {
-    int capturedPieceSquare = MoveHelper::getEndPos(move);
-    capturedPieceSquare += m_board.sideToMove == WHITE ? 10 : -10;
+    int capturedPieceSquare = endPos + enPassAdd;
     m_board.pieces[capturedPieceSquare] = PieceType(MoveHelper::getCapturedPiece(move));
-    m_board.pieces[MoveHelper::getEndPos(move)] = PieceType::EMPTY;
+    m_board.pieces[endPos] = PieceType::EMPTY;
   } else {
-    m_board.pieces[MoveHelper::getEndPos(move)] = PieceType(MoveHelper::getCapturedPiece(move));
+    m_board.pieces[endPos] = PieceType(MoveHelper::getCapturedPiece(move));
   }
   if (pieceToMove == WHITE_KING || pieceToMove == BLACK_KING) {
-    m_board.kingsPositions[m_board.sideToMove] = MoveHelper::getStartPos(move);
+    m_board.kingsPositions[m_board.sideToMove] = startPos;
   }
-  m_board.pieces[MoveHelper::getStartPos(move)] = pieceToMove;
-  for (int i = 0; i < 120; i++) {
-    if (m_board.pieces[i] != piecesCopy[i])
-      return false;
-  }
+  m_board.pieces[startPos] = pieceToMove;
+
   return checkAfterMove;
 }
 
@@ -297,12 +334,12 @@ void MoveGenerator::addCastles() {
   int castleKingside;
   int kingPos;
   if (m_board.sideToMove == WHITE) {
-    castleQueenside = CastleRights::WHITE_QUEENSIDE;
-    castleKingside = CastleRights::WHITE_KINGSIDE;
+    castleQueenside = CASTLE_WHITE_QUEENSIDE;
+    castleKingside = CASTLE_WHITE_KINGSIDE;
     kingPos = 95;
   } else {
-    castleQueenside = CastleRights::BLACK_QUEENSIDE;
-    castleKingside = CastleRights::BLACK_KINGSIDE;
+    castleQueenside = CASTLE_BLACK_QUEENSIDE;
+    castleKingside = CASTLE_BLACK_KINGSIDE;
     kingPos = 25;
   }
   bool canCastleQueenside = (m_board.castleRights & castleQueenside) != 0;

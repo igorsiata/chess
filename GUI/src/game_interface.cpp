@@ -25,7 +25,7 @@ GameInterface::GameInterface() {
 
 std::map<Position64, char> GameInterface::getPiecesAsChar() {
   std::map<Position64, char> piecesAsChar;
-  const PieceType* pieces = m_boardManager.getPieces();
+  const PieceType* pieces = m_boardManager.getBoard().pieces;
   for (uint8_t pos120 = 0; pos120 < 120; pos120++) {
     if (pieces[pos120] != PieceType::EMPTY &&
         pieces[pos120] != PieceType::OFF_BOARD) {

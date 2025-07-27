@@ -10,6 +10,7 @@ add_library(${PROJECT_NAME}
     src/fen_parser.cpp
     src/move_generator.cpp
     src/board_manager.cpp
+    src/move_maker.cpp
 )
 add_library(sub::game_logic ALIAS ${PROJECT_NAME})
 
@@ -17,6 +18,7 @@ target_include_directories( ${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
 target_compile_options(game_logic PRIVATE -O0 -g -Wall -Wextra -Wpedantic -Werror)
+# target_compile_options(game_logic PRIVATE -O3)
 ####### TESTS ############
 add_executable(test_game_logic 
     test/main_gtest.cpp

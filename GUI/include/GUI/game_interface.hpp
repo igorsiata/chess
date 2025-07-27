@@ -15,7 +15,7 @@ public:
   const MoveList &getPossibleMoves() const { return m_possibleMoves; }
   bool isWhiteToMove() const { return m_boardManager.isWhiteToMove(); }
   void unmakeMove();
-  int getFullMoveCount() const { return m_boardManager.getFullMoveCount(); }
+  int getFullMoveCount() const { return m_boardManager.getBoard().moveCount; }
 
 private:
   BoardManager m_boardManager;
