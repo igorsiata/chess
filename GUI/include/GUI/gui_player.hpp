@@ -16,7 +16,7 @@ private:
   Position64 m_clickedSquare;
   Position64 m_prevClickedSquare;
   bool m_isPromoting = false;
-  Move m_promotingMove = 0;
+  Move m_promotingMove;
   const unsigned int m_squareSize;
   std::map<char, sf::Texture> m_textures;
   void drawPossibleMoves();

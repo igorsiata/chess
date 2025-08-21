@@ -31,14 +31,14 @@ struct PerftStats {
   double unmakeMoveDuration = 0;
 };
 
-std::string moveToString(const Move move) {
-  std::stringstream ss;
-  ss << char('a' + BoardHelper::pos120to64(MoveHelper::getStartPos(move)) % 8) << char('8' - BoardHelper::pos120to64(MoveHelper::getStartPos(move)) / 8) << char('a' + BoardHelper::pos120to64(MoveHelper::getEndPos(move)) % 8) << char('8' - BoardHelper::pos120to64(MoveHelper::getEndPos(move)) / 8);
-  if (MoveHelper::isMovePromotion(move)) {
-    ss << "=" << MoveHelper::getPromotedPiece(move);
-  }
-  return ss.str();
-}
+// std::string moveToString(const Move move) {
+//   std::stringstream ss;
+//   ss << char('a' + BoardHelper::pos120to64(MoveHelper::getStartPos(move)) % 8) << char('8' - BoardHelper::pos120to64(MoveHelper::getStartPos(move)) / 8) << char('a' + BoardHelper::pos120to64(MoveHelper::getEndPos(move)) % 8) << char('8' - BoardHelper::pos120to64(MoveHelper::getEndPos(move)) / 8);
+//   if (MoveHelper::isMovePromotion(move)) {
+//     ss << "=" << MoveHelper::getPromotedPiece(move);
+//   }
+//   return ss.str();
+// }
 
 PerftStats perftTestWithStats(BoardManager &boardManager, int maxDepth, int depth = 0) {
   PerftStats stats;
@@ -60,10 +60,6 @@ PerftStats perftTestWithStats(BoardManager &boardManager, int maxDepth, int dept
   // printMoves(allMoves);
   for (int moveIdx = 0; moveIdx < allMoves.count; moveIdx++) {
     Move move = allMoves.moves[moveIdx];
-    bool isCaptured = MoveHelper::getCapturedPiece(move) != EMPTY;
-    bool isCastle = MoveHelper::isMoveCastle(move);
-    bool isPromotion = MoveHelper::isMovePromotion(move);
-    bool isEnPass = MoveHelper::isMoveEnPassant(move);
 
     now = timeNow();
     boardManager.makeMove(move);
@@ -79,13 +75,13 @@ PerftStats perftTestWithStats(BoardManager &boardManager, int maxDepth, int dept
     stats.unmakeMoveDuration += duration;
     if (!boardManager.isBoardCorrect())
       std::cout << "Board not correct\n";
-    if (isCaptured)
+    if (move.isCapture())
       stats.captures++;
-    if (isCastle)
+    if (move.isCastle())
       stats.castles++;
-    if (isPromotion)
+    if (move.isPromotion())
       stats.promotions++;
-    if (isEnPass)
+    if (move.isEnPassant())
       stats.enPass++;
 
     stats.nodes += childStats.nodes;
@@ -95,9 +91,9 @@ PerftStats perftTestWithStats(BoardManager &boardManager, int maxDepth, int dept
     stats.enPass += childStats.enPass;
     stats.checkmates += childStats.checkmates;
 
-    if (depth == 0) {
-      std::cout << moveToString(move) << ": " << childStats.nodes << std::endl;
-    }
+    // if (depth == 0) {
+    //   std::cout << moveToString(move) << ": " << childStats.nodes << std::endl;
+    // }
   }
 
   return stats;

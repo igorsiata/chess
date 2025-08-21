@@ -1,8 +1,8 @@
 #include "game_logic/move_maker.hpp"
 void MoveMaker::makeMove(const Move move) {
-  const Position120 startSqr = MoveHelper::getStartPos(move);
-  const Position120 endSqr = MoveHelper::getEndPos(move);
-  const PieceType capturedPiece = PieceType(MoveHelper::getCapturedPiece(move));
+  const Position120 startSqr = move.startPos();
+  const Position120 endSqr = move.endPos();
+  const PieceType capturedPiece = PieceType(move.capturedPiece());
   const bool isWhiteMove = m_board.sideToMove == Color::WHITE;
   const bool isCapture = capturedPiece != PieceType::EMPTY;
   const PieceType movedPiece = m_board.pieces[startSqr];
@@ -15,16 +15,16 @@ void MoveMaker::makeMove(const Move move) {
       m_board.positionKey};
   m_board.previousMovesArr[m_board.moveCount] = previousMove;
 
-  if (isCapture && !MoveHelper::isMoveEnPassant(move)) {
+  if (isCapture && !move.isEnPassant()) {
     clearPiece(endSqr);
   }
-  if (MoveHelper::isMoveCastle(move)) {
+  if (move.isCastle()) {
     const bool isKingSide = BoardHelper::getFile(endSqr) == 6;
     const Position120 rookStartSqr = startSqr + (isKingSide ? 3 : -4);
     const Position120 rookEndSqr = startSqr + (isKingSide ? 1 : -1);
     movePiece(rookStartSqr, rookEndSqr);
   }
-  if (MoveHelper::isMoveEnPassant(move)) {
+  if (move.isEnPassant()) {
     const Position120 capturedPieceSqr = endSqr + (isWhiteMove ? 10 : -10);
     clearPiece(capturedPieceSqr);
   }
@@ -35,14 +35,14 @@ void MoveMaker::makeMove(const Move move) {
   if (startSqr == m_board.kingsPositions[m_board.sideToMove]) {
     m_board.kingsPositions[m_board.sideToMove] = endSqr;
   }
-  if (MoveHelper::isMovePawnStart(move)) {
+  if (move.isPawnStart()) {
     m_board.enPassantSquare = endSqr + (isWhiteMove ? 10 : -10);
     m_positionHasher.hashEnPassSqr(m_board.positionKey, m_board.enPassantSquare);
   } else {
     m_board.enPassantSquare = NO_SQUARE;
   }
-  if (MoveHelper::isMovePromotion(move)) {
-    const PieceType promotedPiece = PieceType(MoveHelper::getPromotedPiece(move));
+  if (move.isPromotion()) {
+    const PieceType promotedPiece = PieceType(move.promotedPiece());
     clearPiece(startSqr);
     addPiece(promotedPiece, endSqr);
   } else {
@@ -60,21 +60,21 @@ void MoveMaker::makeMove(const Move move) {
                            castlePermisions[BoardHelper::pos120to64(endSqr)]);
   m_positionHasher.hashCastle(m_board.positionKey, m_board.castleRights);
   m_positionHasher.hashSide(m_board.positionKey);
-  //m_board.positionKeysMap[m_board.positionKey]++;
+  // m_board.positionKeysMap[m_board.positionKey]++;
 }
 
 void MoveMaker::unmakeMove() {
-  const PreviousMove previousMove = m_board.previousMovesArr[m_board.moveCount-1];
+  const PreviousMove previousMove = m_board.previousMovesArr[m_board.moveCount - 1];
   const Move move = previousMove.move;
-  const Position120 startSqr = MoveHelper::getStartPos(move);
-  const Position120 endSqr = MoveHelper::getEndPos(move);
-  const PieceType capturedPiece = PieceType(MoveHelper::getCapturedPiece(move));
+  const Position120 startSqr = move.startPos();
+  const Position120 endSqr = move.endPos();
+  const PieceType capturedPiece = PieceType(move.capturedPiece());
   const bool isCapture = capturedPiece != PieceType::EMPTY;
   const bool wasWhiteMoving = m_board.sideToMove == Color::BLACK;
 
   m_board.castleRights = previousMove.castleRights;
   m_board.fiftyMoveCounter = previousMove.fiftyMoveCounter;
-  //m_board.positionKeysMap[m_board.positionKey]--;
+  // m_board.positionKeysMap[m_board.positionKey]--;
   m_board.sideToMove = wasWhiteMoving ? Color::WHITE : Color::BLACK;
   m_board.enPassantSquare = previousMove.enPassantSquare;
   m_board.moveCount--;
@@ -83,20 +83,20 @@ void MoveMaker::unmakeMove() {
 
   movePiece(endSqr, startSqr);
 
-  if (isCapture && !MoveHelper::isMoveEnPassant(move)) {
+  if (isCapture && !move.isEnPassant()) {
     addPiece(capturedPiece, endSqr);
   }
-  if (MoveHelper::isMoveCastle(move)) {
+  if (move.isCastle()) {
     const bool isKingSide = BoardHelper::getFile(endSqr) == 6;
     const Position120 rookStartSqr = startSqr + (isKingSide ? 3 : -4);
     const Position120 rookEndSqr = startSqr + (isKingSide ? 1 : -1);
     movePiece(rookEndSqr, rookStartSqr);
   }
-  if (MoveHelper::isMoveEnPassant(move)) {
+  if (move.isEnPassant()) {
     const Position120 capturedPieceSqr = endSqr + (wasWhiteMoving ? 10 : -10);
     addPiece(capturedPiece, capturedPieceSqr);
   }
-  if (MoveHelper::isMovePromotion(move)) {
+  if (move.isPromotion()) {
     clearPiece(startSqr);
     const PieceType pawnType = wasWhiteMoving ? WHITE_PAWN : BLACK_PAWN;
     addPiece(pawnType, startSqr);

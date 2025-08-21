@@ -39,7 +39,7 @@ void BoardManager::resetBoard() {
   //m_board.positionKeysMap.clear();
 }
 
-void BoardManager::makeMove(const Move move) {
+void BoardManager::makeMove(Move move) {
   m_moveMaker.makeMove(move);
 }
 

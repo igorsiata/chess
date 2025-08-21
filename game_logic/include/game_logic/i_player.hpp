@@ -12,7 +12,7 @@ public:
   bool makeMove(BoardManager& boardManager) {
     m_playerStatus = PlayerStatus::MOVING;
     Move move = this->chooseMove(boardManager);
-    if (move != 0){
+    if (!move){
       boardManager.makeMove(move);
       m_playerStatus = PlayerStatus::WAITING;
       return true;

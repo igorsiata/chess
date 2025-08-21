@@ -13,7 +13,6 @@ typedef uint64_t Bitboard;
 typedef uint8_t Position64;
 typedef uint64_t PosHash;
 typedef uint8_t Position120;
-typedef int Move;
 typedef int CastleRights;
 
 

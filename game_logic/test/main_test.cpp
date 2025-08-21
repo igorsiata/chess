@@ -5,12 +5,8 @@
 
 void printMoves(std::vector<Move> moves) {
   for (auto move : moves) {
-    int startPos = MoveHelper::getStartPos(move);
-    int endPos = MoveHelper::getEndPos(move);
-    int capturedPiece = MoveHelper::getCapturedPiece(move);
-    int flags = MoveHelper::getFlags(move);
-    int promotedPiece = MoveHelper::getPromotedPiece(move);
-    std::cout << "Move: " << startPos << "->" << endPos << " Captured:" << capturedPiece << " flags:" << flags << " Promoted:" << promotedPiece << std::endl;
+
+    std::cout << "Move: " << move.startPos() << "->" << move.endPos() << " Captured:" << move.capturedPiece() << " flags:" << move.flags() << " Promoted:" << move.promotedPiece() << std::endl;
   }
 }
 

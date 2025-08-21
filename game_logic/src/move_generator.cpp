@@ -107,12 +107,12 @@ bool MoveGenerator::isPieceEnemy(Position120 piecePos) {
 }
 
 void MoveGenerator::addMove(Move move) {
-  // if (pinnedPieces.find(MoveHelper::getStartPos(move)) != pinnedPieces.end() ||
-  //     MoveHelper::isMoveEnPassant(move) ||
+  // if (pinnedPieces.find(move.startPos()) != pinnedPieces.end() ||
+  //     move.isEnPassant() ||
   //     isKingInCheck ||
-  //     MoveHelper::getStartPos(move) == m_board.kingsPositions[m_board.sideToMove])
-    if (isCheckAfterMove(move))
-      return;
+  //     move.startPos() == m_board.kingsPositions[m_board.sideToMove])
+  if (isCheckAfterMove(move))
+    return;
 
   m_moveList.moves[m_moveList.count] = move;
   m_moveList.count++;
@@ -132,21 +132,21 @@ void MoveGenerator::GeneratePawnsMoves() {
     if (isPawnOnStartSq(piecePos, m_board.sideToMove) &&
         m_board.pieces[piecePos + pawnforward] == EMPTY &&
         m_board.pieces[piecePos + 2 * pawnforward] == EMPTY) {
-      Move move = MoveHelper::createMove(piecePos,
-                                         piecePos + 2 * pawnforward,
-                                         PieceType::EMPTY,
-                                         MOVE_FLAG_NO_PROMOTION,
-                                         MOVE_FLAG_PAWNSTART);
+      Move move(piecePos,
+                piecePos + 2 * pawnforward,
+                PieceType::EMPTY,
+                MOVE_FLAG_NO_PROMOTION,
+                MOVE_FLAG_PAWNSTART);
       addMove(move);
     }
 
     // move one square
     if (m_board.pieces[piecePos + pawnforward] == EMPTY) {
-      Move move = MoveHelper::createMove(piecePos,
-                                         piecePos + pawnforward,
-                                         PieceType::EMPTY,
-                                         MOVE_FLAG_NO_PROMOTION,
-                                         MOVE_FLAG_REGULAR_MOVE);
+      Move move(piecePos,
+                piecePos + pawnforward,
+                PieceType::EMPTY,
+                MOVE_FLAG_NO_PROMOTION,
+                MOVE_FLAG_REGULAR_MOVE);
       promoteIfPossible(move);
     }
 
@@ -154,42 +154,42 @@ void MoveGenerator::GeneratePawnsMoves() {
     for (int pawnAttack : pawnattacks) {
       if (isPieceEnemy(piecePos + pawnAttack)) {
 
-        Move move = MoveHelper::createMove(piecePos,
-                                           piecePos + pawnAttack,
-                                           m_board.pieces[piecePos + pawnAttack],
-                                           MOVE_FLAG_NO_PROMOTION,
-                                           MOVE_FLAG_REGULAR_MOVE);
+        Move move(piecePos,
+                  piecePos + pawnAttack,
+                  m_board.pieces[piecePos + pawnAttack],
+                  MOVE_FLAG_NO_PROMOTION,
+                  MOVE_FLAG_REGULAR_MOVE);
         promoteIfPossible(move);
       }
 
       // en passant
       if (m_board.enPassantSquare != NO_SQUARE &&
           (piecePos + pawnAttack == m_board.enPassantSquare)) {
-        Move move = MoveHelper::createMove(piecePos,
-                                           piecePos + pawnAttack,
-                                           m_board.pieces[piecePos + pawnAttack - pawnforward],
-                                           MOVE_FLAG_NO_PROMOTION,
-                                           MOVE_FLAG_ENPASSANT);
+        Move move(piecePos,
+                  piecePos + pawnAttack,
+                  m_board.pieces[piecePos + pawnAttack - pawnforward],
+                  MOVE_FLAG_NO_PROMOTION,
+                  MOVE_FLAG_ENPASSANT);
         addMove(move);
       }
     }
   }
 }
 void MoveGenerator::promoteIfPossible(Move move) {
-  int row = MoveHelper::getEndPos(move) / 10;
+  int row = move.endPos() / 10;
   int offset = colorOffset();
-  int startPos = MoveHelper::getStartPos(move);
-  int endPos = MoveHelper::getEndPos(move);
-  int capturedPiece = MoveHelper::getCapturedPiece(move);
+  int startPos = move.startPos();
+  int endPos = move.endPos();
+  int capturedPiece = move.capturedPiece();
   if (row == 2 || row == 9) {
 
     for (int i = 1; i < 5; i++) {
       uint8_t promotedPiece = i + offset;
-      Move promotingMove = MoveHelper::createMove(startPos,
-                                                  endPos,
-                                                  capturedPiece,
-                                                  promotedPiece,
-                                                  MOVE_FLAG_REGULAR_MOVE);
+      Move promotingMove(startPos,
+                         endPos,
+                         capturedPiece,
+                         promotedPiece,
+                         MOVE_FLAG_REGULAR_MOVE);
       addMove(promotingMove);
     }
     return;
@@ -239,7 +239,7 @@ void MoveGenerator::GenerateSliderMoves(
     for (int i = 1; i < 9; i++) {
       Position120 endSquare = startSquare + i * slidingDir[dirIdx];
       if (isPieceEnemy(endSquare)) {
-        Move move = MoveHelper::createMove(
+        Move move(
             startSquare,
             endSquare,
             m_board.pieces[endSquare],
@@ -250,7 +250,7 @@ void MoveGenerator::GenerateSliderMoves(
       if (m_board.pieces[endSquare] != EMPTY) {
         break;
       }
-      Move move = MoveHelper::createMove(
+      Move move(
           startSquare,
           endSquare,
           m_board.pieces[endSquare],
@@ -269,7 +269,7 @@ void MoveGenerator::GenerateKnightMoves() {
     for (const int move : KnightDir) {
       if (m_board.pieces[piecePos + move] == EMPTY ||
           isPieceEnemy(piecePos + move)) {
-        Move moveToAdd = MoveHelper::createMove(
+        Move moveToAdd(
             piecePos,
             piecePos + move,
             m_board.pieces[piecePos + move],
@@ -287,7 +287,7 @@ void MoveGenerator::GenerateKingMoves() {
     const bool isValidSquare = m_board.pieces[kingPos + move] == EMPTY ||
                                isPieceEnemy(kingPos + move);
     if (isValidSquare && !isSquareAttackedByEnemy(kingPos + move)) {
-      Move moveToAdd = MoveHelper::createMove(
+      Move moveToAdd(
           kingPos,
           kingPos + move,
           m_board.pieces[kingPos + move],
@@ -299,13 +299,13 @@ void MoveGenerator::GenerateKingMoves() {
 }
 
 bool MoveGenerator::isCheckAfterMove(Move move) {
-  const Position120 startPos = MoveHelper::getStartPos(move);
-  const Position120 endPos = MoveHelper::getEndPos(move);
+  const Position120 startPos = move.startPos();
+  const Position120 endPos = move.endPos();
   const PieceType pieceToMove = m_board.pieces[startPos];
   const int enPassAdd = m_board.sideToMove == WHITE ? 10 : -10;
   m_board.pieces[startPos] = PieceType::EMPTY;
   m_board.pieces[endPos] = pieceToMove;
-  if (MoveHelper::isMoveEnPassant(move)) {
+  if (move.isEnPassant()) {
     int capturedPieceSquare = endPos + enPassAdd;
     m_board.pieces[capturedPieceSquare] = PieceType::EMPTY;
   }
@@ -314,12 +314,12 @@ bool MoveGenerator::isCheckAfterMove(Move move) {
   }
   bool checkAfterMove = isSquareAttackedByEnemy(m_board.kingsPositions[m_board.sideToMove]);
 
-  if (MoveHelper::isMoveEnPassant(move)) {
+  if (move.isEnPassant()) {
     int capturedPieceSquare = endPos + enPassAdd;
-    m_board.pieces[capturedPieceSquare] = PieceType(MoveHelper::getCapturedPiece(move));
+    m_board.pieces[capturedPieceSquare] = PieceType(move.capturedPiece());
     m_board.pieces[endPos] = PieceType::EMPTY;
   } else {
-    m_board.pieces[endPos] = PieceType(MoveHelper::getCapturedPiece(move));
+    m_board.pieces[endPos] = PieceType(move.capturedPiece());
   }
   if (pieceToMove == WHITE_KING || pieceToMove == BLACK_KING) {
     m_board.kingsPositions[m_board.sideToMove] = startPos;
@@ -353,7 +353,7 @@ void MoveGenerator::addCastles() {
         m_board.pieces[kingPos - 2] == PieceType::EMPTY &&
         m_board.pieces[kingPos - 3] == PieceType::EMPTY) {
 
-      Move move = MoveHelper::createMove(
+      Move move(
           kingPos,
           kingPos - 2,
           PieceType::EMPTY,
@@ -367,7 +367,7 @@ void MoveGenerator::addCastles() {
         !isSquareAttackedByEnemy(kingPos + 2) &&
         m_board.pieces[kingPos + 1] == PieceType::EMPTY &&
         m_board.pieces[kingPos + 2] == PieceType::EMPTY) {
-      Move move = MoveHelper::createMove(
+      Move move(
           kingPos,
           kingPos + 2,
           PieceType::EMPTY,
