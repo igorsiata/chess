@@ -19,7 +19,7 @@ target_include_directories( ${PROJECT_NAME}
     PUBLIC ${PROJECT_SOURCE_DIR}/include
 )
 target_compile_options(game_logic PRIVATE -O0 -g -Wall -Wextra -Wpedantic -Werror)
-# target_compile_options(game_logic PRIVATE -O3)
+#target_compile_options(game_logic PRIVATE -O3)
 ####### TESTS ############
 add_executable(test_game_logic 
     test/main_gtest.cpp

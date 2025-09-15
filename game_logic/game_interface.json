@@ -1,0 +1,22 @@
+
+{
+    "pieces": [
+        {
+        "piece_type": "white_pawn",
+        "piece_pos": "e4"
+        },
+        {
+        "piece_type": "black_pawn",
+        "piece_pos": "e4"
+        },
+        {
+        "piece_type": "pawn",
+        "piece_pos": "e4"
+        }
+    ],
+    "legal_moves": [
+        "e4e5", "e4e6", "a1e2"
+    ],
+    "game_state": "in_progress",
+    "side_to_move": "black"
+}

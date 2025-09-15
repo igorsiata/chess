@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 project(Chess LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(game_logic)
+#add_subdirectory(game_logic)
+add_subdirectory(server)
 # add_subdirectory(GUI)
 
 # add_executable(Chess ${SOURCE_FILES}

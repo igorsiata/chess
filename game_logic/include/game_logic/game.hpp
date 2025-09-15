@@ -17,8 +17,7 @@ class Game{
              std::unique_ptr<IPlayer> whitePlayer,
              std::unique_ptr<IPlayer> blackPlayer);
         void executeTurn();
-        GameStatus getGameStatus() const {return m_gameStatus;}
-        std::vector<std::pair<Position64, PieceChar>> getPiecesVec();
+        std::string getGameState() const;
     private:
         BoardManager m_boardManager;
         GameStatus m_gameStatus;

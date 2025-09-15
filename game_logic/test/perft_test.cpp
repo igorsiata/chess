@@ -31,14 +31,18 @@ struct PerftStats {
   double unmakeMoveDuration = 0;
 };
 
-// std::string moveToString(const Move move) {
-//   std::stringstream ss;
-//   ss << char('a' + BoardHelper::pos120to64(MoveHelper::getStartPos(move)) % 8) << char('8' - BoardHelper::pos120to64(MoveHelper::getStartPos(move)) / 8) << char('a' + BoardHelper::pos120to64(MoveHelper::getEndPos(move)) % 8) << char('8' - BoardHelper::pos120to64(MoveHelper::getEndPos(move)) / 8);
-//   if (MoveHelper::isMovePromotion(move)) {
-//     ss << "=" << MoveHelper::getPromotedPiece(move);
-//   }
-//   return ss.str();
-// }
+std::string moveToString(const Move move) {
+  std::stringstream ss;
+  ss << char('a' + BoardHelper::pos120to64(move.startPos()) % 8) << char('8' - BoardHelper::pos120to64(move.startPos()) / 8) << char('a' + BoardHelper::pos120to64(move.endPos()) % 8) << char('8' - BoardHelper::pos120to64(move.endPos()) / 8);
+  if (move.isPromotion()) {
+    ss << "=" << move.promotedPiece();
+  }
+  return ss.str();
+}
+
+void printMove(Move move) {
+    std::cout << "Move: " << move.startPos() << "->" << move.endPos() << " Captured:" << move.capturedPiece() << " flags:" << move.flags() << " Promoted:" << move.promotedPiece() << std::endl;
+}
 
 PerftStats perftTestWithStats(BoardManager &boardManager, int maxDepth, int depth = 0) {
   PerftStats stats;
@@ -54,12 +58,13 @@ PerftStats perftTestWithStats(BoardManager &boardManager, int maxDepth, int dept
   if (boardManager.getGameStatus() != IN_PROGRESS) {
     if (boardManager.getGameStatus() != DRAW)
       stats.checkmates = 1;
-    stats.nodes = 1;
+    stats.nodes = 0;
     return stats;
   }
-  // printMoves(allMoves);
+  
   for (int moveIdx = 0; moveIdx < allMoves.count; moveIdx++) {
     Move move = allMoves.moves[moveIdx];
+    // printMove(move);
 
     now = timeNow();
     boardManager.makeMove(move);
@@ -220,7 +225,6 @@ TEST(TestPerft, TestPos5depth3) {
 TEST(TestPerft, TestPos5depth4) {
   BoardManager boardManager;
   boardManager.loadBoardFromFEN("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
-  std::cout << "-----\n";
   PerftStats preftStats = perftTestWithStats(boardManager, 4);
   // std::cout << "MoveGen: " << preftStats.moveGenDuration << "\nMoveMake: " << preftStats.makeMoveDuration << "\nUnmakeMove: " << preftStats.unmakeMoveDuration << std::endl;
   EXPECT_EQ(preftStats.nodes, 2103487);

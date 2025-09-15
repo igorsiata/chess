@@ -33,7 +33,6 @@ struct Board {
 
   PosHash positionKey;
   std::array<PreviousMove, 2048> previousMovesArr;
-  //std::unordered_map<PosHash, int> positionKeysMap;
   int moveCount;
 
   Position120 kingsPositions[2];
